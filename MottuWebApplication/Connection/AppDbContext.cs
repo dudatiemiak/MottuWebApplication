@@ -1,5 +1,4 @@
-﻿using System.Reflection.Metadata;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using MottuWebApplication.Models;
 
 namespace MottuWebApplication.Connection

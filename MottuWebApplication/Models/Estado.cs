@@ -11,8 +11,7 @@ namespace MottuWebApplication.Models
         [Required]
         public string NmEstado { get; set; }
 
+        [ForeignKey("Pais")]
         public int IdPais { get; set; }
-        [ForeignKey("IdPais")]
-        public Pais? Pais { get; set; }
     }
 }

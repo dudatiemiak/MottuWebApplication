@@ -18,9 +18,9 @@ namespace MottuWebApplication.Models
         [Required, StringLength(100), EmailAddress]
         public string NmEmail { get; set; }
 
+        [ForeignKey("Logradouro")]
+
         public int IdLogradouro { get; set; }
-        [ForeignKey("IdLogradouro")]
-        public Logradouro? Logradouro { get; set; }
 
         public List<Moto> Motos { get; set; }
 

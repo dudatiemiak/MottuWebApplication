@@ -20,8 +20,7 @@ namespace MottuWebApplication.Models
         [Required, StringLength(255)]
         public string NmSenha { get; set; }
 
+        [ForeignKey("Filial")]
         public int IdFilial { get; set; }
-        [ForeignKey("IdFilial")]
-        public Filial? Filial { get; set; }
     }
 }

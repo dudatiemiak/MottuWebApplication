@@ -17,9 +17,8 @@ namespace MottuWebApplication.Models
         [StringLength(100)]
         public string NmComplemento { get; set; }
 
+        [ForeignKey("Bairro")]
         public int IdBairro { get; set; }
-        [ForeignKey("IdBairro")]
-        public Bairro? Bairro { get; set; }
 
         public List<Cliente> Clientes { get; set; }
         public List<Filial> Filiais { get; set; }

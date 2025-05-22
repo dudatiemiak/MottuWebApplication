@@ -16,17 +16,14 @@ namespace MottuWebApplication.Models
 
         public double KmRodado { get; set; }
 
+        [ForeignKey("Cliente")]
         public int IdCliente { get; set; }
+
+        [ForeignKey("Modelo")]
         public int IdModelo { get; set; }
+
+        [ForeignKey("FilialDepartamento")]
         public int IdFilialDepartamento { get; set; }
 
-        [ForeignKey("IdCliente")]
-        public Cliente? Cliente { get; set; }
-
-        [ForeignKey("IdModelo")]
-        public Modelo? Modelo { get; set; }
-
-        [ForeignKey("IdFilialDepartamento")]
-        public FilialDepartamento? FilialDepartamento { get; set; }
     }
 }

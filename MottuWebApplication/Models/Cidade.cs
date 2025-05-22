@@ -11,8 +11,7 @@ namespace MottuWebApplication.Models
         [Required, StringLength(50)]
         public string NmCidade { get; set; }
 
+        [ForeignKey("Estado")]
         public int IdEstado { get; set; }
-        [ForeignKey("IdEstado")]
-        public Estado? Estado { get; set; }
     }
 }

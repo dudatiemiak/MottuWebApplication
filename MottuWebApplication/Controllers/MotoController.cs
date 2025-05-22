@@ -19,21 +19,13 @@ namespace MottuWebApplication.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Moto>>> Get()
         {
-            return await _context.Motos
-                .Include(m => m.Cliente)
-                .Include(m => m.Modelo)
-                .Include(m => m.FilialDepartamento)
-                .ToListAsync();
+            return await _context.Motos.ToListAsync();
         }
 
         [HttpGet("{idMoto}")]
         public async Task<ActionResult<Moto>> Get(int idMoto)
         {
-            var moto = await _context.Motos
-                .Include(m => m.Cliente)
-                .Include(m => m.Modelo)
-                .Include(m => m.FilialDepartamento)
-                .FirstOrDefaultAsync(m => m.IdMoto == idMoto);
+            var moto = await _context.Motos.FindAsync(idMoto);
 
             if (moto == null)
                 return NotFound();

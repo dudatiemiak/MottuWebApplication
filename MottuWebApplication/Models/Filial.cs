@@ -11,8 +11,7 @@ namespace MottuWebApplication.Models
         [Required, StringLength(100)]
         public string NmFilial { get; set; }
 
+        [ForeignKey("Logradouro")]
         public int IdLogradouro { get; set; }
-        [ForeignKey("IdLogradouro")]
-        public Logradouro? Logradouro { get; set; }
     }
 }

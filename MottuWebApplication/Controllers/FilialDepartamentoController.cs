@@ -19,13 +19,13 @@ namespace MottuWebApplication.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<FilialDepartamento>>> Get()
         {
-            return await _context.FilialDepartamentos.Include(fd => fd.Filial).Include(fd => fd.Departamento).ToListAsync();
+            return await _context.FilialDepartamentos.ToListAsync();
         }
 
         [HttpGet("{idFilialDepartamento}")]
         public async Task<ActionResult<FilialDepartamento>> Get(int idFilialDepartamento)
         {
-            var filialDepartamento = await _context.FilialDepartamentos.Include(fd => fd.Filial).Include(fd => fd.Departamento).FirstOrDefaultAsync(fd => fd.IdFilialDepartamento == idFilialDepartamento);
+            var filialDepartamento = await _context.FilialDepartamentos.FindAsync(idFilialDepartamento);
 
             if (filialDepartamento == null)
                 return NotFound();

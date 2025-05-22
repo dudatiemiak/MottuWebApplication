@@ -19,15 +19,13 @@ namespace MottuWebApplication.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Estado>>> Get()
         {
-            return await _context.Estados
-                .Include(e => e.Pais)
-                .ToListAsync();
+            return await _context.Estados.ToListAsync();
         }
 
         [HttpGet("{idEstado}")]
         public async Task<ActionResult<Estado>> Get(int idEstado)
         {
-            var estado = await _context.Estados.Include(e => e.Pais).FirstOrDefaultAsync(e => e.IdEstado == idEstado);
+            var estado = await _context.Estados.FindAsync(idEstado);
 
             if (estado == null)
                 return NotFound();

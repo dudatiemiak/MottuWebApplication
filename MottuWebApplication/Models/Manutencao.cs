@@ -16,8 +16,7 @@ namespace MottuWebApplication.Models
         [Required, StringLength(300)]
         public string DsManutencao { get; set; }
 
+        [ForeignKey("Moto")]
         public int IdMoto { get; set; }
-        [ForeignKey("IdMoto")]
-        public Moto? Moto { get; set; }
     }
 }

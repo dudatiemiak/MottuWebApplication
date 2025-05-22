@@ -19,15 +19,13 @@ namespace MottuWebApplication.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Bairro>>> Get()
         {
-            return await _context.Bairros
-                .Include(b => b.Cidade)
-                .ToListAsync();
+            return await _context.Bairros.ToListAsync();
         }
 
         [HttpGet("{idBairro}")]
         public async Task<ActionResult<Bairro>> Get(int idBairro)
         {
-            var bairro = await _context.Bairros.Include(b => b.Cidade).FirstOrDefaultAsync(b => b.IdBairro == idBairro);
+            var bairro = await _context.Bairros.FindAsync(idBairro);
 
             if (bairro == null) return NotFound();
             return bairro;

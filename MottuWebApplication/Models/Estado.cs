@@ -13,6 +13,6 @@ namespace MottuWebApplication.Models
 
         public int IdPais { get; set; }
         [ForeignKey("IdPais")]
-        public Pais Pais { get; set; }
+        public Pais? Pais { get; set; }
     }
 }

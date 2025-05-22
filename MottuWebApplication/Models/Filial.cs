@@ -13,6 +13,6 @@ namespace MottuWebApplication.Models
 
         public int IdLogradouro { get; set; }
         [ForeignKey("IdLogradouro")]
-        public Logradouro Logradouro { get; set; }
+        public Logradouro? Logradouro { get; set; }
     }
 }

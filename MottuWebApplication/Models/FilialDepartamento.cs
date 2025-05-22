@@ -12,10 +12,10 @@ namespace MottuWebApplication.Models
         public int IdDepartamento { get; set; }
 
         [ForeignKey("IdFilial")]
-        public Filial Filial { get; set; }
+        public Filial? Filial { get; set; }
 
         [ForeignKey("IdDepartamento")]
-        public Departamento Departamento { get; set; }
+        public Departamento? Departamento { get; set; }
 
         public DateTime DtEntrada { get; set; }
         public DateTime? DtSaida { get; set; }

@@ -21,12 +21,12 @@ namespace MottuWebApplication.Models
         public int IdFilialDepartamento { get; set; }
 
         [ForeignKey("IdCliente")]
-        public Cliente Cliente { get; set; }
+        public Cliente? Cliente { get; set; }
 
         [ForeignKey("IdModelo")]
-        public Modelo Modelo { get; set; }
+        public Modelo? Modelo { get; set; }
 
         [ForeignKey("IdFilialDepartamento")]
-        public FilialDepartamento FilialDepartamento { get; set; }
+        public FilialDepartamento? FilialDepartamento { get; set; }
     }
 }

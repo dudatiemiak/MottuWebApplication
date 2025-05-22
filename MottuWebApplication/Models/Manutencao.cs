@@ -18,6 +18,6 @@ namespace MottuWebApplication.Models
 
         public int IdMoto { get; set; }
         [ForeignKey("IdMoto")]
-        public Moto Moto { get; set; }
+        public Moto? Moto { get; set; }
     }
 }

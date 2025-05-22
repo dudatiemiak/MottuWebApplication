@@ -22,6 +22,6 @@ namespace MottuWebApplication.Models
 
         public int IdFilial { get; set; }
         [ForeignKey("IdFilial")]
-        public Filial Filial { get; set; }
+        public Filial? Filial { get; set; }
     }
 }

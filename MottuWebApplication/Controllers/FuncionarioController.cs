@@ -115,13 +115,13 @@ namespace MottuWebApplication.Controllers
         }
 
         /// <summary>
-        /// Retorna funcionários por domínio do e-mail corporativo.
+        /// Retorna funcionários por e-mail corporativo.
         /// </summary>
-        [HttpGet("email/dominio/{dominio}")]
-        public async Task<ActionResult<IEnumerable<Funcionario>>> GetByDominioEmail(string dominio)
+        [HttpGet("email/{email}")]
+        public async Task<ActionResult<IEnumerable<Funcionario>>> GetByEmail(string email)
         {
             var funcionarios = await _context.Funcionarios
-                .Where(f => f.NmEmailCorporativo.EndsWith("@" + dominio))
+                .Where(f => f.NmEmailCorporativo.Contains(email))
                 .ToListAsync();
 
             return funcionarios;

@@ -95,8 +95,10 @@ Todas com CRUD completo (`GET`, `POST`, `PUT`, `DELETE`).
 
 ---
  
-### Grupo
+## 👨‍💻 Integrantes do Grupo
 
-	-> Eduarda Tiemi Akamini Machado - RM554756
-	-> Felipe Pizzinato Biggato Garcia - RM555141
-	-> Gustavo de Oliveira Turci Sandrini - RM557505
+| Nome                                      | RM       | Turma  |
+|-------------------------------------------|----------|--------|
+| Eduarda Tiemi Akamini Machado             | 554756   | 2TDSPH |
+| Felipe Pizzinato Bigatto                  | 555141   | 2TDSPH |
+| Gustavo de Oliveira Turci Sandrini        | 557505   | 2TDSPW |

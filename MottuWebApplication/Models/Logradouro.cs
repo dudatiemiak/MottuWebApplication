@@ -20,7 +20,5 @@ namespace MottuWebApplication.Models
         [ForeignKey("Bairro")]
         public int IdBairro { get; set; }
 
-        public List<Cliente> Clientes { get; set; }
-        public List<Filial> Filiais { get; set; }
     }
 }

@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
-namespace MottuWebApplication.Models
+namespace MottuWebApplication.MottuWebApplication.Domain.Entities
 {
     public class Cliente
     {

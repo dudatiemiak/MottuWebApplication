@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using MottuWebApplication.Connection;
-using MottuWebApplication.Models;
+using MottuWebApplication.Infrastructure.Data;
+using MottuWebApplication.MottuWebApplication.Domain.Entities;
 
 namespace MottuWebApplication.Controllers
 {
@@ -22,7 +22,7 @@ namespace MottuWebApplication.Controllers
             return await _context.Departamentos.ToListAsync();
         }
 
-        [HttpGet("{idDepartamento}")]
+        [HttpGet("{idDepartamento:length(24)}")]
         public async Task<ActionResult<Departamento>> Get(int idDepartamento)
         {
             var departamento = await _context.Departamentos.FindAsync(idDepartamento);
@@ -60,7 +60,7 @@ namespace MottuWebApplication.Controllers
             }
         }
 
-        [HttpPut("{idDepartamento}")]
+        [HttpPut("{idDepartamento:length(24)}")]
         public async Task<ActionResult> Put(int idDepartamento, Departamento departamento)
         {
             if (idDepartamento != departamento.IdDepartamento)
@@ -72,7 +72,7 @@ namespace MottuWebApplication.Controllers
             return NoContent();
         }
 
-        [HttpDelete("{idDepartamento}")]
+        [HttpDelete("{idDepartamento:length(24)}")]
         public async Task<ActionResult> Delete(int idDepartamento)
         {
             var departamento = await _context.Departamentos.FindAsync(idDepartamento);

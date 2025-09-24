@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using MottuWebApplication.Connection;
-using MottuWebApplication.Models;
+using MottuWebApplication.Infrastructure.Data;
+using MottuWebApplication.MottuWebApplication.Domain.Entities;
 
 namespace MottuWebApplication.Controllers
 {
@@ -22,7 +22,7 @@ namespace MottuWebApplication.Controllers
             return await _context.Manutencoes.ToListAsync();
         }
 
-        [HttpGet("{idManutencao}")]
+        [HttpGet("{idManutencao:length(24)}")]
         public async Task<ActionResult<Manutencao>> Get(int idManutencao)
         {
             var manutencao = await _context.Manutencoes.FindAsync(idManutencao);
@@ -58,7 +58,7 @@ namespace MottuWebApplication.Controllers
             }
         }
 
-        [HttpPut("{idManutencao}")]
+        [HttpPut("{idManutencao:length(24)}")]
         public async Task<ActionResult> Put(int idManutencao, Manutencao manutencao)
         {
             if (idManutencao != manutencao.IdManutencao)
@@ -70,7 +70,7 @@ namespace MottuWebApplication.Controllers
             return NoContent();
         }
 
-        [HttpDelete("{idManutencao}")]
+        [HttpDelete("{idManutencao:length(24)}")]
         public async Task<ActionResult> Delete(int idManutencao)
         {
             var manutencao = await _context.Manutencoes.FindAsync(idManutencao);

@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using MottuWebApplication.Connection;
-using MottuWebApplication.Models;
+using MottuWebApplication.Infrastructure.Data;
+using MottuWebApplication.MottuWebApplication.Domain.Entities;
 
 namespace MottuWebApplication.Controllers
 {
@@ -22,7 +22,7 @@ namespace MottuWebApplication.Controllers
             return await _context.FilialDepartamentos.ToListAsync();
         }
 
-        [HttpGet("{idFilialDepartamento}")]
+        [HttpGet("{idFilialDepartamento:length(24)}")]
         public async Task<ActionResult<FilialDepartamento>> Get(int idFilialDepartamento)
         {
             var filialDepartamento = await _context.FilialDepartamentos.FindAsync(idFilialDepartamento);
@@ -51,7 +51,7 @@ namespace MottuWebApplication.Controllers
             }
         }
 
-        [HttpPut("{idFilialDepartamento}")]
+        [HttpPut("{idFilialDepartamento:length(24)}")]
         public async Task<ActionResult> Put(int idFilialDepartamento, FilialDepartamento filialDepartamento)
         {
             if (idFilialDepartamento != filialDepartamento.IdFilialDepartamento)
@@ -63,7 +63,7 @@ namespace MottuWebApplication.Controllers
             return NoContent();
         }
 
-        [HttpDelete("{idFilialDepartamento}")]
+        [HttpDelete("{idFilialDepartamento:length(24)}")]
         public async Task<ActionResult> Delete(int idFilialDepartamento)
         {
             var filialDepartamento = await _context.FilialDepartamentos.FindAsync(idFilialDepartamento);

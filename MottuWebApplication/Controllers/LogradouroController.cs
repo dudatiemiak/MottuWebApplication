@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using MottuWebApplication.Connection;
-using MottuWebApplication.Models;
+using MottuWebApplication.Infrastructure.Data;
+using MottuWebApplication.MottuWebApplication.Domain.Entities;
 
 namespace MottuWebApplication.Controllers
 {
@@ -22,7 +22,7 @@ namespace MottuWebApplication.Controllers
             return await _context.Logradouros.ToListAsync();
         }
 
-        [HttpGet("{idLogradouro}")]
+        [HttpGet("{idLogradouro:length(24)}")]
         public async Task<ActionResult<Logradouro>> Get(int idLogradouro)
         {
             var logradouro = await _context.Logradouros.FindAsync(idLogradouro);
@@ -64,7 +64,7 @@ namespace MottuWebApplication.Controllers
             }
         }
 
-        [HttpPut("{idLogradouro}")]
+        [HttpPut("{idLogradouro:length(24)}")]
         public async Task<ActionResult> Put(int idLogradouro, Logradouro logradouro)
         {
             if (idLogradouro != logradouro.IdLogradouro)
@@ -76,7 +76,7 @@ namespace MottuWebApplication.Controllers
             return NoContent();
         }
 
-        [HttpDelete("{idLogradouro}")]
+        [HttpDelete("{idLogradouro:length(24)}")]
         public async Task<ActionResult> Delete(int idLogradouro)
         {
             var logradouro = await _context.Logradouros.FindAsync(idLogradouro);

@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using MottuWebApplication.Connection;
-using MottuWebApplication.Models;
+using MottuWebApplication.Infrastructure.Data;
+using MottuWebApplication.MottuWebApplication.Domain.Entities;
 
 namespace MottuWebApplication.Controllers
 {
@@ -22,7 +22,7 @@ namespace MottuWebApplication.Controllers
             return await _context.Filiais.ToListAsync();
         }
 
-        [HttpGet("{idFilial}")]
+        [HttpGet("{idFilial:length(24)}")]
         public async Task<ActionResult<Filial>> Get(int idFilial)
         {
             var filial = await _context.Filiais.FindAsync(idFilial);
@@ -55,7 +55,7 @@ namespace MottuWebApplication.Controllers
             }
         }
 
-        [HttpPut("{idFilial}")]
+        [HttpPut("{idFilial:length(24)}")]
         public async Task<ActionResult> Put(int idFilial, Filial filial)
         {
             if (idFilial != filial.IdFilial)
@@ -67,7 +67,7 @@ namespace MottuWebApplication.Controllers
             return NoContent();
         }
 
-        [HttpDelete("{idFilial}")]
+        [HttpDelete("{idFilial:length(24)}")]
         public async Task<ActionResult> Delete(int idFilial)
         {
             var filial = await _context.Filiais.FindAsync(idFilial);

@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
-namespace MottuWebApplication.Models
+namespace MottuWebApplication.MottuWebApplication.Domain.Entities
 {
     public class FilialDepartamento
     {

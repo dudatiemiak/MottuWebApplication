@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace MottuWebApplication.Migrations
+namespace MottuWebApplication.Infrastructure.Migrations
 {
     /// <inheritdoc />
     public partial class Inicial : Migration

@@ -8,7 +8,7 @@ using Oracle.EntityFrameworkCore.Metadata;
 
 #nullable disable
 
-namespace MottuWebApplication.Migrations
+namespace MottuWebApplication.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
     partial class AppDbContextModelSnapshot : ModelSnapshot

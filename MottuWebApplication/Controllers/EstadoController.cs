@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using MottuWebApplication.Infrastructure.Data;
 using MottuWebApplication.MottuWebApplication.Domain.Entities;
+using MottuWebApplication.Application.Interfaces;
 
 namespace MottuWebApplication.Controllers
 {
@@ -9,70 +8,82 @@ namespace MottuWebApplication.Controllers
     [Route("api/[controller]")]
     public class EstadoController : ControllerBase
     {
-        private readonly AppDbContext _context;
+    private readonly IEstadoService _service;
 
-        public EstadoController(AppDbContext context)
-        {
-            _context = context;
-        }
+    public EstadoController(IEstadoService service) => _service = service;
 
+        /// <summary>
+        /// Retorna todos os estados cadastrados.
+        /// </summary>
+        /// <returns>Lista de estados.</returns>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Estado>>> Get()
         {
-            return await _context.Estados.ToListAsync();
+            return Ok(await _service.GetAllAsync());
         }
 
-        [HttpGet("{idEstado:length(24)}")]
+        /// <summary>
+        /// Retorna um estado específico pelo seu id.
+        /// </summary>
+        /// <param name="idEstado">Id do estado.</param>
+        [HttpGet("{idEstado}", Name = "GetEstado")]
         public async Task<ActionResult<Estado>> Get(int idEstado)
         {
-            var estado = await _context.Estados.FindAsync(idEstado);
+            var estado = await _service.GetByIdAsync(idEstado);
 
             if (estado == null)
-                return NotFound();
-            return estado;
+                return NotFound(); // 404 Not Found quando não encontrado
+            return Ok(estado); // 200 OK com a entidade
         }
 
+        /// <summary>
+        /// Cria um novo estado.
+        /// </summary>
+        /// <param name="estado">Dados do estado.</param>
         [HttpPost]
         public async Task<ActionResult> Post(Estado estado)
         {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(estado.NmEstado))
-                    return BadRequest(new { StatusCode = 400, Message = "O nome do estado é obrigatório." });
-
-                _context.Estados.Add(estado);
-                await _context.SaveChangesAsync();
-
-                return CreatedAtAction(nameof(Get), new { idEstado = estado.IdEstado }, estado);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { StatusCode = 400, Message = $"Erro ao cadastrar estado: {ex.Message}" });
-            }
+            var created = await _service.CreateAsync(estado);
+            return CreatedAtRoute("GetEstado", new { idEstado = created.IdEstado }, created); // 201 Created com header 'Location'
         }
 
-        [HttpPut("{idEstado:length(24)}")]
+        /// <summary>
+        /// Atualiza um estado existente.
+        /// </summary>
+        /// <param name="idEstado">Id do estado.</param>
+        /// <param name="estado">Dados do estado.</param>
+        [HttpPut("{idEstado}")]
         public async Task<ActionResult> Put(int idEstado, Estado estado)
         {
             if (idEstado != estado.IdEstado)
-                return BadRequest(new { StatusCode = 400, Message = "ID da rota não corresponde ao objeto enviado." });
-
-            _context.Entry(estado).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+                return BadRequest(new { StatusCode = 400, Message = "ID da rota não corresponde ao objeto enviado." }); // 400 Bad Request quando IDs não correspondem
+            var existente = await _service.GetByIdAsync(idEstado);
+            if (existente == null) return NotFound(); // 404 Not Found se não existir para atualizar
+            try
+            {
+                await _service.UpdateAsync(estado);
+                return NoContent(); // Retorna 204 No Content
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Ocorreu um erro ao atualizar o estado."); // 500 Internal Server Error (concorrência/falha)
+            }
         }
 
-        [HttpDelete("{idEstado:length(24)}")]
+        /// <summary>
+        /// Remove um estado pelo seu id.
+        /// </summary>
+    /// <param name="idEstado">Id do estado.</param>
+        [HttpDelete("{idEstado}")]
         public async Task<ActionResult> Delete(int idEstado)
         {
-            var estado = await _context.Estados.FindAsync(idEstado);
-            if (estado == null) return NotFound();
+            var existente = await _service.GetByIdAsync(idEstado);
+            if (existente == null) return NotFound();
 
-            _context.Estados.Remove(estado);
-            await _context.SaveChangesAsync();
+            var ok = await _service.DeleteAsync(idEstado);
+            if (!ok) return StatusCode(500, "Ocorreu um erro ao remover o estado."); // 500 em falha de exclusão
 
-            return NoContent();
+            return NoContent(); // 204 No Content
         }
     }
 }

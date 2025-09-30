@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using MottuWebApplication.Infrastructure.Data;
 using MottuWebApplication.MottuWebApplication.Domain.Entities;
+using MottuWebApplication.Application.Interfaces;
 
 namespace MottuWebApplication.Controllers
 {
@@ -9,73 +8,81 @@ namespace MottuWebApplication.Controllers
     [Route("api/[controller]")]
     public class CidadeController : ControllerBase
     {
-        private readonly AppDbContext _context;
+    private readonly ICidadeService _service;
 
-        public CidadeController(AppDbContext context)
-        {
-            _context = context;
-        }
+    public CidadeController(ICidadeService service) => _service = service;
 
+
+        /// <summary>
+        /// Retorna todas as cidades cadastradas.
+        /// </summary>
+        /// <returns>Lista de cidades.</returns>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Cidade>>> Get()
         {
-            return await _context.Cidades.ToListAsync();
+            return Ok(await _service.GetAllAsync());
         }
 
-        [HttpGet("{idCidade:length(24)}")]
+        /// <summary>
+        /// Retorna uma cidade específica pelo seu id.
+        /// </summary>
+        /// <param name="idCidade">Id da cidade.</param>
+        [HttpGet("{idCidade}", Name = "GetCidade")]
         public async Task<ActionResult<Cidade>> Get(int idCidade)
         {
-            var cidade = await _context.Cidades.FindAsync(idCidade);
+            var cidade = await _service.GetByIdAsync(idCidade);
 
             if (cidade == null)
-                return NotFound();
-            return cidade;
+                return NotFound(); // 404 Not Found quando não encontrado
+            return Ok(cidade); // 200 OK com a entidade
         }
 
+        /// <summary>
+        /// Cria uma nova cidade.
+        /// </summary>
+        /// <param name="cidade">Dados da cidade.</param>
         [HttpPost]
         public async Task<ActionResult> Post(Cidade cidade)
         {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(cidade.NmCidade))
-                    return BadRequest(new { StatusCode = 400, Message = "O nome da cidade é obrigatório." });
-
-                if (cidade.NmCidade.Length > 50)
-                    return BadRequest(new { StatusCode = 400, Message = "O nome da cidade não pode exceder 50 caracteres." });
-
-                _context.Cidades.Add(cidade);
-                await _context.SaveChangesAsync();
-
-                return CreatedAtAction(nameof(Get), new { idCidade = cidade.IdCidade }, cidade);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { StatusCode = 400, Message = $"Erro ao cadastrar cidade: {ex.Message}" });
-            }
+            var created = await _service.CreateAsync(cidade);
+            return CreatedAtRoute("GetCidade", new { idCidade = created.IdCidade }, created); // 201 Created com header 'Location'
         }
 
-        [HttpPut("{idCidade:length(24)}")]
+        /// <summary>
+        /// Atualiza uma cidade existente.
+        /// </summary>
+        /// <param name="idCidade">Id da cidade.</param>
+        /// <param name="cidade">Dados da cidade.</param>
+        [HttpPut("{idCidade}")]
         public async Task<ActionResult> Put(int idCidade, Cidade cidade)
         {
             if (idCidade != cidade.IdCidade)
-                return BadRequest(new { StatusCode = 400, Message = "ID da rota não corresponde ao objeto enviado." });
+                return BadRequest(new { StatusCode = 400, Message = "ID da rota não corresponde ao objeto enviado." }); // 400 Bad Request quando o ID da rota não bate com o do corpo
+            var existente = await _service.GetByIdAsync(idCidade);
+            if (existente == null) return NotFound(); // 404 Not Found se não existir para atualizar
 
-            _context.Entry(cidade).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            try
+            {
+                await _service.UpdateAsync(cidade);
+                return NoContent(); // Retorna 204 No Content
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Ocorreu um erro ao atualizar a cidade."); // 500 Internal Server Error (concorrência/falha)
+            }
         }
 
-        [HttpDelete("{idCidade:length(24)}")]
+        /// <summary>
+        /// Remove uma cidade pelo seu id.
+        /// </summary>
+        /// <param name="idCidade">Id da cidade.</param>
+        [HttpDelete("{idCidade}")]
         public async Task<ActionResult> Delete(int idCidade)
         {
-            var cidade = await _context.Cidades.FindAsync(idCidade);
-            if (cidade == null) return NotFound();
+            var ok = await _service.DeleteAsync(idCidade);
+            if (!ok) return NotFound(); // 404 Not Found quando não há o que remover
 
-            _context.Cidades.Remove(cidade);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            return NoContent(); // 204 No Content
         }
     }
 }

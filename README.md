@@ -1,3 +1,20 @@
+# MottuWebApplication
+
+Este projeto segue uma arquitetura inspirada em Clean Architecture com as camadas:
+
+- API (Presentation) — `MottuWebApplication`
+- Application — `MottuWebApplication.Application`
+- Domain — `MottuWebApplication.Domain`
+- Infrastructure — `MottuWebApplication.Infrastructure`
+
+Principais padrões aplicados:
+
+- Repository Pattern (genérico com EF Core)
+- Service Layer (serviços específicos de domínio e CRUD genérico)
+- Dependency Injection (extensões `AddInfrastructure` e `AddApplication`)
+- Swagger com comentários XML
+
+Para executar a API, inicie o projeto `MottuWebApplication` e acesse `/swagger` para a documentação.
 <h1 align="center">🏍️ Mottu Web API - Projeto ASP.NET Core + Oracle</h1>
 
 <p align="center">
@@ -18,6 +35,20 @@ A aplicação foi desenvolvida com os seguintes objetivos:
 - Usar o **EF Core com migrations** para geração das tabelas Oracle
 - Criar uma API organizada, documentada e testável
 - Documentação gerada com **Swagger**
+
+---
+
+## 🧭 Justificativa do Domínio
+
+O domínio escolhido representa um cenário corporativo de gestão de frotas e operações, no qual:
+
+- Clientes realizam cadastros e se relacionam com endereços (logradouro/bairro/cidade/estado/país).
+- A empresa opera com filiais e departamentos (estrutura organizacional), relacionando-os por meio de `FilialDepartamento`.
+- A frota é composta por `Moto` e seus respectivos `Modelo`s; cada moto está vinculada a uma estrutura de `FilialDepartamento`.
+- `Manutencao` registra entradas e saídas de serviços, garantindo disponibilidade e segurança dos veículos.
+
+Essa modelagem reflete um problema de negócio real que exige operações CRUD claras, validações simples e consultas filtradas—
+um encaixe ideal para demonstrar boas práticas REST com ASP.NET Core + EF Core + Oracle.
 
 ---
 

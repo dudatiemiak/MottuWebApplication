@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using MottuWebApplication.Infrastructure.Data;
 using MottuWebApplication.MottuWebApplication.Domain.Entities;
+using MottuWebApplication.Application.Interfaces;
 
 namespace MottuWebApplication.Controllers
 {
@@ -9,74 +8,82 @@ namespace MottuWebApplication.Controllers
     [Route("api/[controller]")]
     public class FilialController : ControllerBase
     {
-        private readonly AppDbContext _context;
+    private readonly IFilialService _service;
 
-        public FilialController(AppDbContext context)
-        {
-            _context = context;
-        }
+    public FilialController(IFilialService service) => _service = service;
 
+        /// <summary>
+        /// Retorna todas as filiais cadastradas.
+        /// </summary>
+        /// <returns>Lista de filiais.</returns>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Filial>>> Get()
         {
-            return await _context.Filiais.ToListAsync();
+            return Ok(await _service.GetAllAsync());
         }
 
-        [HttpGet("{idFilial:length(24)}")]
+        /// <summary>
+        /// Retorna uma filial específica pelo seu id.
+        /// </summary>
+        /// <param name="idFilial">Id da filial.</param>
+        [HttpGet("{idFilial}", Name = "GetFilial")]
         public async Task<ActionResult<Filial>> Get(int idFilial)
         {
-            var filial = await _context.Filiais.FindAsync(idFilial);
+            var filial = await _service.GetByIdAsync(idFilial);
 
             if (filial == null)
-                return NotFound();
+                return NotFound(); // 404 Not Found quando não encontrado
 
-            return filial;
+            return Ok(filial); // 200 OK com a entidade
         }
 
+        /// <summary>
+        /// Cria uma nova filial.
+        /// </summary>
+        /// <param name="filial">Dados da filial.</param>
         [HttpPost]
         public async Task<ActionResult> Post(Filial filial)
         {
-            try
-            {
-                if (string.IsNullOrEmpty(filial.NmFilial))
-                    return BadRequest(new { StatusCode = 400, Message = "O nome da filial é obrigatório." });
-
-                if (filial.NmFilial.Length > 100)
-                    return BadRequest(new { StatusCode = 400, Message = "O nome da filial não pode ultrapassar 100 caracteres." });
-
-                _context.Filiais.Add(filial);
-                await _context.SaveChangesAsync();
-
-                return CreatedAtAction(nameof(Get), new { idFilial = filial.IdFilial }, filial);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { StatusCode = 400, Message = $"Erro ao salvar filial: {ex.Message}" });
-            }
+            var created = await _service.CreateAsync(filial);
+            return CreatedAtRoute("GetFilial", new { idFilial = created.IdFilial }, created); // 201 Created com header 'Location'
         }
 
-        [HttpPut("{idFilial:length(24)}")]
+        /// <summary>
+        /// Atualiza uma filial existente.
+        /// </summary>
+        /// <param name="idFilial">Id da filial.</param>
+        /// <param name="filial">Dados da filial.</param>
+        [HttpPut("{idFilial}")]
         public async Task<ActionResult> Put(int idFilial, Filial filial)
         {
             if (idFilial != filial.IdFilial)
-                return BadRequest(new { StatusCode = 400, Message = "ID da rota não bate com o objeto enviado." });
-
-            _context.Entry(filial).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+                return BadRequest(new { StatusCode = 400, Message = "ID da rota não bate com o objeto enviado." }); // 400 Bad Request id mismatch
+            var existente = await _service.GetByIdAsync(idFilial);
+            if (existente == null) return NotFound(); // 404 Not Found se não existir
+            try
+            {
+                await _service.UpdateAsync(filial);
+                return NoContent(); // Retorna 204 No Content
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Ocorreu um erro ao atualizar a filial."); // 500 Internal Server Error (concorrência/falha)
+            }
         }
 
-        [HttpDelete("{idFilial:length(24)}")]
+    /// <summary>
+        /// Remove uma filial pelo seu id.
+        /// </summary>
+        /// <param name="idFilial">Id da filial.</param>
+        [HttpDelete("{idFilial}")]
         public async Task<ActionResult> Delete(int idFilial)
         {
-            var filial = await _context.Filiais.FindAsync(idFilial);
-            if (filial == null) return NotFound();
+            var existente = await _service.GetByIdAsync(idFilial);
+            if (existente == null) return NotFound();
+            var ok = await _service.DeleteAsync(idFilial);
+            if (!ok) return StatusCode(500, "Ocorreu um erro ao remover a filial."); // 500 em falha de exclusão
 
-            _context.Filiais.Remove(filial);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            return NoContent(); // 204 No Content
         }
 
         /// <summary>
@@ -85,11 +92,9 @@ namespace MottuWebApplication.Controllers
         [HttpGet("nome/{nome}")]
         public async Task<ActionResult<IEnumerable<Filial>>> GetByNome(string nome)
         {
-            var filiais = await _context.Filiais
-                .Where(f => f.NmFilial.Contains(nome))
-                .ToListAsync();
-
-            return filiais;
+            // optional custom filter preserved via service
+            var filiais = await _service.GetByNomeAsync(nome);
+            return Ok(filiais);
         }
     }    
 }

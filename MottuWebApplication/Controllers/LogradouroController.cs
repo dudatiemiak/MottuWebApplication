@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using MottuWebApplication.Infrastructure.Data;
 using MottuWebApplication.MottuWebApplication.Domain.Entities;
+using MottuWebApplication.Application.Interfaces;
 
 namespace MottuWebApplication.Controllers
 {
@@ -9,83 +8,79 @@ namespace MottuWebApplication.Controllers
     [Route("api/[controller]")]
     public class LogradouroController : ControllerBase
     {
-        private readonly AppDbContext _context;
+    private readonly ILogradouroService _service;
 
-        public LogradouroController(AppDbContext context)
-        {
-            _context = context;
-        }
+    public LogradouroController(ILogradouroService service) => _service = service;
 
+        /// <summary>
+        /// Retorna todos os logradouros.
+        /// </summary>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Logradouro>>> Get()
-        {
-            return await _context.Logradouros.ToListAsync();
-        }
+        public async Task<ActionResult<IEnumerable<Logradouro>>> Get() => Ok(await _service.GetAllAsync());
 
-        [HttpGet("{idLogradouro:length(24)}")]
+        /// <summary>
+        /// Retorna um logradouro pelo identificador.
+        /// </summary>
+        /// <param name="idLogradouro">Identificador do logradouro.</param>
+        [HttpGet("{idLogradouro}", Name = "GetLogradouro")]
         public async Task<ActionResult<Logradouro>> Get(int idLogradouro)
         {
-            var logradouro = await _context.Logradouros.FindAsync(idLogradouro);
+            var logradouro = await _service.GetByIdAsync(idLogradouro);
 
             if (logradouro == null)
-                return NotFound();
+                return NotFound(); // 404 Not Found quando não encontrado
 
-            return logradouro;
+            return Ok(logradouro); // 200 OK com a entidade
         }
 
+        /// <summary>
+        /// Cadastra um novo logradouro.
+        /// </summary>
+        /// <param name="logradouro">Dados do logradouro.</param>
         [HttpPost]
         public async Task<ActionResult> Post(Logradouro logradouro)
         {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(logradouro.NmLogradouro))
-                    return BadRequest(new { StatusCode = 400, Message = "O nome do logradouro é obrigatório." });
-
-                if (logradouro.NmLogradouro.Length > 100)
-                    return BadRequest(new { StatusCode = 400, Message = "O nome do logradouro não pode exceder 100 caracteres." });
-
-                if (string.IsNullOrWhiteSpace(logradouro.NrLogradouro))
-                    return BadRequest(new { StatusCode = 400, Message = "O número do logradouro é obrigatório." });
-
-                if (logradouro.NrLogradouro.Length > 10)
-                    return BadRequest(new { StatusCode = 400, Message = "O número do logradouro não pode exceder 10 caracteres." });
-
-                if (logradouro.NmComplemento?.Length > 100)
-                    return BadRequest(new { StatusCode = 400, Message = "O complemento não pode exceder 100 caracteres." });
-
-                _context.Logradouros.Add(logradouro);
-                await _context.SaveChangesAsync();
-
-                return CreatedAtAction(nameof(Get), new { idLogradouro = logradouro.IdLogradouro }, logradouro);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { StatusCode = 400, Message = $"Erro ao cadastrar logradouro: {ex.Message}" });
-            }
+            var created = await _service.CreateAsync(logradouro);
+            return CreatedAtRoute("GetLogradouro", new { idLogradouro = created.IdLogradouro }, created); // 201 Created com header 'Location'
         }
 
-        [HttpPut("{idLogradouro:length(24)}")]
+        /// <summary>
+        /// Atualiza um logradouro existente.
+        /// </summary>
+        /// <param name="idLogradouro">Identificador do logradouro.</param>
+        /// <param name="logradouro">Dados do logradouro.</param>
+        [HttpPut("{idLogradouro}")]
         public async Task<ActionResult> Put(int idLogradouro, Logradouro logradouro)
         {
             if (idLogradouro != logradouro.IdLogradouro)
                 return BadRequest(new { StatusCode = 400, Message = "ID da rota não corresponde ao objeto enviado." });
-
-            _context.Entry(logradouro).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            var existente = await _service.GetByIdAsync(idLogradouro);
+            if (existente == null) return NotFound();
+            try
+            {
+                await _service.UpdateAsync(logradouro);
+                return NoContent(); // Retorna 204 No Content
+            }
+            catch (Exception)
+            {
+                // Pode indicar um problema de concorrência ou falha na atualização
+                return StatusCode(500, "Ocorreu um erro ao atualizar o logradouro.");
+            }
         }
 
-        [HttpDelete("{idLogradouro:length(24)}")]
+        /// <summary>
+        /// Remove um logradouro pelo seu identificador.
+        /// </summary>
+        /// <param name="idLogradouro">Identificador do logradouro.</param>
+        [HttpDelete("{idLogradouro}")]
         public async Task<ActionResult> Delete(int idLogradouro)
         {
-            var logradouro = await _context.Logradouros.FindAsync(idLogradouro);
-            if (logradouro == null) return NotFound();
+            var existente = await _service.GetByIdAsync(idLogradouro);
+            if (existente == null) return NotFound();
+            var ok = await _service.DeleteAsync(idLogradouro);
+            if (!ok) return StatusCode(500, "Ocorreu um erro ao remover o logradouro.");
 
-            _context.Logradouros.Remove(logradouro);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            return NoContent(); // Retorna 204 No Content
         }
     }
 }

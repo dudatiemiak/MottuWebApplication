@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using MottuWebApplication.Infrastructure.Data;
 using MottuWebApplication.MottuWebApplication.Domain.Entities;
+using MottuWebApplication.Application.Interfaces;
 
 namespace MottuWebApplication.Controllers
 {
@@ -9,122 +8,116 @@ namespace MottuWebApplication.Controllers
     [Route("api/[controller]")]
     public class FuncionarioController : ControllerBase
     {
-        private readonly AppDbContext _context;
+    private readonly IFuncionarioService _service;
 
-        public FuncionarioController(AppDbContext context)
-        {
-            _context = context;
-        }
+    public FuncionarioController(IFuncionarioService service) => _service = service;
 
+        /// <summary>
+        /// Retorna todos os funcionários cadastrados.
+        /// </summary>
+        /// <returns>Lista de funcionários.</returns>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Funcionario>>> Get()
         {
-            return await _context.Funcionarios.ToListAsync();
+            return Ok(await _service.GetAllAsync());
         }
 
-        [HttpGet("{idFuncionario:length(24)}")]
+    /// <summary>
+    /// Retorna um funcionário pelo seu id.
+    /// </summary>
+    /// <param name="idFuncionario">Id do funcionário.</param>
+        [HttpGet("{idFuncionario}", Name = "GetFuncionario")]
         public async Task<ActionResult<Funcionario>> Get(int idFuncionario)
         {
-            var funcionario = await _context.Funcionarios.FindAsync(idFuncionario);
+            var funcionario = await _service.GetByIdAsync(idFuncionario);
 
             if (funcionario == null)
-                return NotFound();
+                return NotFound(); // 404 Not Found quando não encontrado
 
-            return funcionario;
+            return Ok(funcionario); // 200 OK com a entidade
         }
 
+        /// <summary>
+        /// Cadastra um novo funcionário.
+        /// </summary>
+        /// <param name="funcionario">Dados do funcionário.</param>
         [HttpPost]
         public async Task<ActionResult> Post(Funcionario funcionario)
         {
-            try
-            {
-                if (string.IsNullOrEmpty(funcionario.NmFuncionario))
-                    return BadRequest(new { StatusCode = 400, Message = "O nome do funcionário é obrigatório." });
-
-                if (funcionario.NmFuncionario.Length > 100)
-                    return BadRequest(new { StatusCode = 400, Message = "O nome do funcionário não pode exceder 100 caracteres." });
-
-                if (string.IsNullOrEmpty(funcionario.NmCargo))
-                    return BadRequest(new { StatusCode = 400, Message = "O cargo é obrigatório." });
-
-                if (!funcionario.NmEmailCorporativo.Contains("@"))
-                    return BadRequest(new { StatusCode = 400, Message = "E-mail corporativo inválido." });
-
-                if (string.IsNullOrEmpty(funcionario.NmSenha) || funcionario.NmSenha.Length < 6)
-                    return BadRequest(new { StatusCode = 400, Message = "A senha deve ter pelo menos 6 caracteres." });
-
-                _context.Funcionarios.Add(funcionario);
-                await _context.SaveChangesAsync();
-
-                return CreatedAtAction(nameof(Get), new { idFuncionario = funcionario.IdFuncionario }, funcionario);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { StatusCode = 400, Message = $"Erro ao cadastrar funcionário: {ex.Message}" });
-            }
+            var created = await _service.CreateAsync(funcionario);
+            return CreatedAtRoute("GetFuncionario", new { idFuncionario = created.IdFuncionario }, created); // 201 Created com header 'Location'
         }
 
-        [HttpPut("{idFuncionario:length(24)}")]
+        /// <summary>
+        /// Atualiza um funcionário existente.
+        /// </summary>
+        /// <param name="idFuncionario">Id do funcionário.</param>
+        /// <param name="funcionario">Dados do funcionário.</param>
+        [HttpPut("{idFuncionario}")]
         public async Task<ActionResult> Put(int idFuncionario, Funcionario funcionario)
         {
             if (idFuncionario != funcionario.IdFuncionario)
                 return BadRequest(new { StatusCode = 400, Message = "ID informado não corresponde ao funcionário enviado." });
-
-            _context.Entry(funcionario).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            var existente = await _service.GetByIdAsync(idFuncionario);
+            if (existente == null) return NotFound();
+            try
+            {
+                await _service.UpdateAsync(funcionario);
+                return NoContent(); // Retorna 204 No Content
+            }
+            catch (Exception)
+            {
+                // Pode indicar um problema de concorrência ou falha na atualização
+                return StatusCode(500, "Ocorreu um erro ao atualizar o funcionário.");
+            }
         }
 
-        [HttpDelete("{idFuncionario:length(24)}")]
+        /// <summary>
+        /// Remove um funcionário pelo seu id.
+        /// </summary>
+        /// <param name="idFuncionario">Id do funcionário.</param>
+        [HttpDelete("{idFuncionario}")]
         public async Task<ActionResult> Delete(int idFuncionario)
         {
-            var funcionario = await _context.Funcionarios.FindAsync(idFuncionario);
-            if (funcionario == null) return NotFound();
+            var existente = await _service.GetByIdAsync(idFuncionario);
+            if (existente == null) return NotFound();
+            var ok = await _service.DeleteAsync(idFuncionario);
+            if (!ok) return StatusCode(500, "Ocorreu um erro ao remover o funcionário.");
 
-            _context.Funcionarios.Remove(funcionario);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            return NoContent(); // Retorna 204 No Content
         }
 
         /// <summary>
         /// Retorna funcionários cujo nome contenha o valor informado.
         /// </summary>
+        /// <param name="nome">Parte do nome do funcionário.</param>
         [HttpGet("nome/{nome}")]
         public async Task<ActionResult<IEnumerable<Funcionario>>> GetByNome(string nome)
         {
-            var funcionarios = await _context.Funcionarios
-                .Where(f => f.NmFuncionario.Contains(nome))
-                .ToListAsync();
-
-            return funcionarios;
+            var funcionarios = await _service.GetByNomeAsync(nome);
+            return Ok(funcionarios);
         }
 
         /// <summary>
         /// Retorna funcionários pelo cargo exato informado.
         /// </summary>
+        /// <param name="cargo">Nome do cargo.</param>
         [HttpGet("cargo/{cargo}")]
         public async Task<ActionResult<IEnumerable<Funcionario>>> GetByCargo(string cargo)
         {
-            var funcionarios = await _context.Funcionarios
-                .Where(f => f.NmCargo == cargo)
-                .ToListAsync();
-
-            return funcionarios;
+            var funcionarios = await _service.GetByCargoAsync(cargo);
+            return Ok(funcionarios);
         }
 
         /// <summary>
         /// Retorna funcionários por e-mail corporativo.
         /// </summary>
+        /// <param name="email">E-mail corporativo (contém, case-insensitive).</param>
         [HttpGet("email/{email}")]
         public async Task<ActionResult<IEnumerable<Funcionario>>> GetByEmail(string email)
         {
-            var funcionarios = await _context.Funcionarios
-                .Where(f => f.NmEmailCorporativo.Contains(email))
-                .ToListAsync();
-
-            return funcionarios;
+            var funcionarios = await _service.GetByEmailAsync(email);
+            return Ok(funcionarios);
         }
     }
 }

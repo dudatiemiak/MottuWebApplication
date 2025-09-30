@@ -4,12 +4,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using MottuWebApplication.Connection;
+using MottuWebApplication.Infrastructure.Data;
 using Oracle.EntityFrameworkCore.Metadata;
 
 #nullable disable
 
-namespace MottuWebApplication.Migrations
+namespace MottuWebApplication.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
     [Migration("20250521005700_Inicial")]

@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using MottuWebApplication.Infrastructure.Data;
 using MottuWebApplication.MottuWebApplication.Domain.Entities;
+using MottuWebApplication.Application.Interfaces;
 
 namespace MottuWebApplication.Controllers
 {
@@ -9,79 +8,83 @@ namespace MottuWebApplication.Controllers
     [Route("api/[controller]")]
     public class DepartamentoController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IDepartamentoService _service;
 
-        public DepartamentoController(AppDbContext context)
-        {
-            _context = context;
-        }
+        public DepartamentoController(IDepartamentoService service)
+            => _service = service;
 
+        /// <summary>
+        /// Retorna todos os departamentos cadastrados.
+        /// </summary>
+        /// <returns>Lista de departamentos.</returns>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Departamento>>> Get()
         {
-            return await _context.Departamentos.ToListAsync();
+            return Ok(await _service.GetAllAsync());
         }
 
-        [HttpGet("{idDepartamento:length(24)}")]
+        /// <summary>
+        /// Retorna um departamento específico pelo seu id.
+        /// </summary>
+        /// <param name="idDepartamento">Id do departamento.</param>
+        [HttpGet("{idDepartamento}", Name = "GetDepartamento")]
         public async Task<ActionResult<Departamento>> Get(int idDepartamento)
         {
-            var departamento = await _context.Departamentos.FindAsync(idDepartamento);
+            var departamento = await _service.GetByIdAsync(idDepartamento);
 
             if (departamento == null)
-                return NotFound();
-            return departamento;
+                return NotFound(); // 404 Not Found quando não encontrado
+            return Ok(departamento); // 200 OK com a entidade
         }
 
+        /// <summary>
+        /// Cria um novo departamento.
+        /// </summary>
+        /// <param name="departamento">Dados do departamento.</param>
         [HttpPost]
         public async Task<ActionResult> Post(Departamento departamento)
         {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(departamento.NmDepartamento))
-                    return BadRequest(new { StatusCode = 400, Message = "O nome do departamento é obrigatório." });
-
-                if (departamento.NmDepartamento.Length > 50)
-                    return BadRequest(new { StatusCode = 400, Message = "O nome do departamento não pode exceder 50 caracteres." });
-
-                if (string.IsNullOrWhiteSpace(departamento.DsDepartamento))
-                    return BadRequest(new { StatusCode = 400, Message = "A descrição do departamento é obrigatória." });
-
-                if (departamento.DsDepartamento.Length > 250)
-                    return BadRequest(new { StatusCode = 400, Message = "A descrição não pode exceder 250 caracteres." });
-
-                _context.Departamentos.Add(departamento);
-                await _context.SaveChangesAsync();
-
-                return CreatedAtAction(nameof(Get), new { idDepartamento = departamento.IdDepartamento }, departamento);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { StatusCode = 400, Message = $"Erro ao cadastrar departamento: {ex.Message}" });
-            }
+            var created = await _service.CreateAsync(departamento);
+            return CreatedAtRoute("GetDepartamento", new { idDepartamento = created.IdDepartamento }, created); // 201 Created com header 'Location'
         }
 
-        [HttpPut("{idDepartamento:length(24)}")]
+        /// <summary>
+        /// Atualiza um departamento existente.
+        /// </summary>
+        /// <param name="idDepartamento">Id do departamento.</param>
+        /// <param name="departamento">Dados do departamento.</param>
+        [HttpPut("{idDepartamento}")]
         public async Task<ActionResult> Put(int idDepartamento, Departamento departamento)
         {
             if (idDepartamento != departamento.IdDepartamento)
-                return BadRequest(new { StatusCode = 400, Message = "ID da rota não corresponde ao objeto enviado." });
-
-            _context.Entry(departamento).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+                return BadRequest(new { StatusCode = 400, Message = "ID da rota não corresponde ao objeto enviado." }); // 400 Bad Request quando ID da rota não bate com o do corpo
+            var existente = await _service.GetByIdAsync(idDepartamento);
+            if (existente == null) return NotFound(); // 404 Not Found se não existir para atualizar
+            try
+            {
+                await _service.UpdateAsync(departamento);
+                return NoContent(); // Retorna 204 No Content
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Ocorreu um erro ao atualizar o departamento."); // 500 Internal Server Error (concorrência/falha)
+            }
         }
 
-        [HttpDelete("{idDepartamento:length(24)}")]
+        /// <summary>
+        /// Remove um departamento pelo seu id.
+        /// </summary>
+        /// <param name="idDepartamento">Id do departamento.</param>
+        [HttpDelete("{idDepartamento}")]
         public async Task<ActionResult> Delete(int idDepartamento)
         {
-            var departamento = await _context.Departamentos.FindAsync(idDepartamento);
-            if (departamento == null) return NotFound();
+            var existente = await _service.GetByIdAsync(idDepartamento);
+            if (existente == null) return NotFound();
 
-            _context.Departamentos.Remove(departamento);
-            await _context.SaveChangesAsync();
+            var ok = await _service.DeleteAsync(idDepartamento);
+            if (!ok) return StatusCode(500, "Ocorreu um erro ao remover o departamento."); // 500 em falha de exclusão
 
-            return NoContent();
+            return NoContent(); // 204 No Content
         }
     }
 }

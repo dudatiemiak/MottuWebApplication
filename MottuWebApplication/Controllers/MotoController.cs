@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using MottuWebApplication.Infrastructure.Data;
 using MottuWebApplication.MottuWebApplication.Domain.Entities;
+using MottuWebApplication.Application.Interfaces;
 
 namespace MottuWebApplication.Controllers
 {
@@ -9,80 +9,83 @@ namespace MottuWebApplication.Controllers
     [Route("api/[controller]")]
     public class MotoController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IMotoService _motoService;
 
-        public MotoController(AppDbContext context)
-        {
-            _context = context;
-        }
+        public MotoController(IMotoService motoService) => _motoService = motoService;
 
+        /// <summary>
+        /// Retorna todas as motos cadastradas.
+        /// </summary>
+        /// <returns>Lista de motos.</returns>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Moto>>> Get()
         {
-            return await _context.Motos.ToListAsync();
+            return Ok(await _motoService.GetAllAsync());
         }
 
-        [HttpGet("{idMoto:length(24)}")]
+        /// <summary>
+        /// Retorna uma moto específica pelo id.
+        /// </summary>
+        /// <param name="idMoto">Id da moto.</param>
+        [HttpGet("{idMoto}", Name = "GetMoto")]
         public async Task<ActionResult<Moto>> Get(int idMoto)
         {
-            var moto = await _context.Motos.FindAsync(idMoto);
+            var moto = await _motoService.GetByIdAsync(idMoto);
 
             if (moto == null)
-                return NotFound();
+                return NotFound(); // 404 Not Found quando não encontrado
 
-            return moto;
+            return Ok(moto); // 200 OK com a entidade
         }
 
+        /// <summary>
+        /// Cria uma nova moto.
+        /// </summary>
+        /// <param name="moto">Dados da moto.</param>
         [HttpPost]
         public async Task<ActionResult> Post(Moto moto)
         {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(moto.NmPlaca))
-                    return BadRequest(new { StatusCode = 400, Message = "A placa é obrigatória." });
-
-                if (moto.NmPlaca.Length > 10)
-                    return BadRequest(new { StatusCode = 400, Message = "A placa não pode ter mais que 10 caracteres." });
-
-                if (string.IsNullOrWhiteSpace(moto.StMoto))
-                    return BadRequest(new { StatusCode = 400, Message = "O status da moto é obrigatório." });
-
-                if (moto.KmRodado < 0)
-                    return BadRequest(new { StatusCode = 400, Message = "O km rodado não pode ser negativo." });
-
-                _context.Motos.Add(moto);
-                await _context.SaveChangesAsync();
-
-                return CreatedAtAction(nameof(Get), new { idMoto = moto.IdMoto }, moto);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { StatusCode = 400, Message = $"Erro ao cadastrar moto: {ex.Message}" });
-            }
+            var created = await _motoService.CreateAsync(moto);
+            return CreatedAtRoute("GetMoto", new { idMoto = created.IdMoto }, created); // 201 Created com header 'Location'
         }
 
-        [HttpPut("{idMoto:length(24)}")]
+        /// <summary>
+        /// Atualiza uma moto existente.
+        /// </summary>
+        /// <param name="idMoto">Id da moto.</param>
+        /// <param name="moto">Dados da moto.</param>
+        [HttpPut("{idMoto}")]
         public async Task<ActionResult> Put(int idMoto, Moto moto)
         {
             if (idMoto != moto.IdMoto)
                 return BadRequest(new { StatusCode = 400, Message = "ID da moto não corresponde ao objeto enviado." });
-
-            _context.Entry(moto).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            var existente = await _motoService.GetByIdAsync(idMoto);
+            if (existente == null) return NotFound();
+            try
+            {
+                await _motoService.UpdateAsync(moto);
+                return NoContent(); // Retorna 204 No Content
+            }
+            catch (Exception)
+            {
+                // Pode indicar um problema de concorrência ou falha na atualização
+                return StatusCode(500, "Ocorreu um erro ao atualizar a moto.");
+            }
         }
 
-        [HttpDelete("{idMoto:length(24)}")]
+        /// <summary>
+        /// Remove uma moto pelo seu id.
+        /// </summary>
+        /// <param name="idMoto">Id da moto.</param>
+        [HttpDelete("{idMoto}")]
         public async Task<ActionResult> Delete(int idMoto)
         {
-            var moto = await _context.Motos.FindAsync(idMoto);
-            if (moto == null) return NotFound();
+            var existente = await _motoService.GetByIdAsync(idMoto);
+            if (existente == null) return NotFound();
+            var ok = await _motoService.DeleteAsync(idMoto);
+            if (!ok) return StatusCode(500, "Ocorreu um erro ao remover a moto.");
 
-            _context.Motos.Remove(moto);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            return NoContent(); // Retorna 204 No Content
         }
 
         /// <summary>
@@ -91,11 +94,8 @@ namespace MottuWebApplication.Controllers
         [HttpGet("placa/{placa}")]
         public async Task<ActionResult<IEnumerable<Moto>>> GetByPlaca(string placa)
         {
-            var motos = await _context.Motos
-                .Where(m => m.NmPlaca.ToLower() == placa.ToLower())
-                .ToListAsync();
-
-            return motos;
+            var motos = await _motoService.GetByPlacaAsync(placa);
+            return Ok(motos);
         }
 
         /// <summary>
@@ -104,11 +104,8 @@ namespace MottuWebApplication.Controllers
         [HttpGet("status/{status}")]
         public async Task<ActionResult<IEnumerable<Moto>>> GetByStatus(string status)
         {
-            var motos = await _context.Motos
-                .Where(m => m.StMoto.ToLower() == status.ToLower())
-                .ToListAsync();
-
-            return motos;
+            var motos = await _motoService.GetByStatusAsync(status);
+            return Ok(motos);
         }
 
         /// <summary>
@@ -117,11 +114,8 @@ namespace MottuWebApplication.Controllers
         [HttpGet("filialdepartamento/{idFilialDepartamento}")]
         public async Task<ActionResult<IEnumerable<Moto>>> GetByFilialDepartamento(int idFilialDepartamento)
         {
-            var motos = await _context.Motos
-                .Where(m => m.IdFilialDepartamento == idFilialDepartamento)
-                .ToListAsync();
-
-            return motos;
+            var motos = await _motoService.GetByFilialDepartamentoAsync(idFilialDepartamento);
+            return Ok(motos);
         }
     }
 }

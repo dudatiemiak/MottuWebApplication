@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using MottuWebApplication.Infrastructure.Data;
 using MottuWebApplication.MottuWebApplication.Domain.Entities;
+using MottuWebApplication.Application.Interfaces;
 
 namespace MottuWebApplication.Controllers
 {
@@ -9,73 +8,82 @@ namespace MottuWebApplication.Controllers
     [Route("api/[controller]")]
     public class ModeloController : ControllerBase
     {
-        private readonly AppDbContext _context;
+    private readonly IModeloService _service;
 
-        public ModeloController(AppDbContext context)
-        {
-            _context = context;
-        }
+        public ModeloController(IModeloService service)
+            => _service = service;
 
+        /// <summary>
+        /// Retorna todos os modelos cadastrados.
+        /// </summary>
+        /// <returns>Lista de modelos.</returns>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Modelo>>> Get()
         {
-            return await _context.Modelos.ToListAsync();
+            return Ok(await _service.GetAllAsync());
         }
 
-        [HttpGet("{idModelo:length(24)}")]
+        /// <summary>
+        /// Retorna um modelo de moto pelo seu id.
+        /// </summary>
+        /// <param name="idModelo">Id do modelo.</param>
+        [HttpGet("{idModelo}", Name = "GetModelo")]
         public async Task<ActionResult<Modelo>> Get(int idModelo)
         {
-            var modelo = await _context.Modelos.FindAsync(idModelo);
+            var modelo = await _service.GetByIdAsync(idModelo);
             if (modelo == null)
-                return NotFound();
-            return modelo;
+                return NotFound(); // 404 Not Found quando não encontrado
+            return Ok(modelo); // 200 OK com a entidade
         }
 
+        /// <summary>
+        /// Cadastra um novo modelo.
+        /// </summary>
+        /// <param name="modelo">Dados do modelo.</param>
         [HttpPost]
         public async Task<ActionResult> Post(Modelo modelo)
         {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(modelo.NmModelo))
-                    return BadRequest(new { StatusCode = 400, Message = "O nome do modelo é obrigatório." });
-
-                if (modelo.NmModelo.Length > 50)
-                    return BadRequest(new { StatusCode = 400, Message = "O nome do modelo não pode exceder 50 caracteres." });
-
-                _context.Modelos.Add(modelo);
-                await _context.SaveChangesAsync();
-
-                return CreatedAtAction(nameof(Get), new { idModelo = modelo.IdModelo }, modelo);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { StatusCode = 400, Message = $"Erro ao cadastrar modelo: {ex.Message}" });
-            }
+            var created = await _service.CreateAsync(modelo);
+            return CreatedAtRoute("GetModelo", new { idModelo = created.IdModelo }, created); // 201 Created com header 'Location'
         }
 
-        [HttpPut("{idModelo:length(24)}")]
+        /// <summary>
+        /// Atualiza um modelo existente.
+        /// </summary>
+        /// <param name="idModelo">Id do modelo.</param>
+        /// <param name="modelo">Dados do modelo.</param>
+        [HttpPut("{idModelo}")]
         public async Task<ActionResult> Put(int idModelo, Modelo modelo)
         {
             if (idModelo != modelo.IdModelo)
                 return BadRequest(new { StatusCode = 400, Message = "ID da rota não corresponde ao objeto enviado." });
-
-            _context.Entry(modelo).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            var existente = await _service.GetByIdAsync(idModelo);
+            if (existente == null) return NotFound();
+            try
+            {
+                await _service.UpdateAsync(modelo);
+                return NoContent(); // Retorna 204 No Content
+            }
+            catch (Exception)
+            {
+                // Pode indicar um problema de concorrência ou falha na atualização
+                return StatusCode(500, "Ocorreu um erro ao atualizar o modelo.");
+            }
         }
 
-        [HttpDelete("{idModelo:length(24)}")]
+        /// <summary>
+        /// Remove um modelo pelo seu id.
+        /// </summary>
+        /// <param name="idModelo">Id do modelo.</param>
+        [HttpDelete("{idModelo}")]
         public async Task<ActionResult> Delete(int idModelo)
         {
-            var modelo = await _context.Modelos.FindAsync(idModelo);
-            if (modelo == null)
-                return NotFound();
+            var existente = await _service.GetByIdAsync(idModelo);
+            if (existente == null) return NotFound();
+            var ok = await _service.DeleteAsync(idModelo);
+            if (!ok) return StatusCode(500, "Ocorreu um erro ao remover o modelo.");
 
-            _context.Modelos.Remove(modelo);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            return NoContent(); // Retorna 204 No Content
         }
     }
 }

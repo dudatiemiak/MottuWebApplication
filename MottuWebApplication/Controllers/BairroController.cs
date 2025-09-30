@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using MottuWebApplication.Infrastructure.Data;
 using MottuWebApplication.MottuWebApplication.Domain.Entities;
+using MottuWebApplication.Application.Interfaces;
 
 namespace MottuWebApplication.Controllers
 {
@@ -9,71 +8,81 @@ namespace MottuWebApplication.Controllers
     [Route("api/[controller]")]
     public class BairroController : ControllerBase
     {
-        private readonly AppDbContext _context;
+    private readonly IBairroService _service;
 
-        public BairroController(AppDbContext context)
-        {
-            _context = context;
-        }
+    public BairroController(IBairroService service) => _service = service;
 
+        /// <summary>
+        /// Retorna todos os bairros cadastrados.
+        /// </summary>
+        /// <returns>Lista de bairros.</returns>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Bairro>>> Get()
         {
-            return await _context.Bairros.ToListAsync();
+            return Ok(await _service.GetAllAsync());
         }
 
-        [HttpGet("{idBairro:length(24)}")]
+        /// <summary>
+        /// Retorna um bairro específico pelo seu id.
+        /// </summary>
+    /// <param name="idBairro">Id do bairro.</param>
+        [HttpGet("{idBairro}", Name = "GetBairro")]
         public async Task<ActionResult<Bairro>> Get(int idBairro)
         {
-            var bairro = await _context.Bairros.FindAsync(idBairro);
+            var bairro = await _service.GetByIdAsync(idBairro);
 
-            if (bairro == null) return NotFound();
-            return bairro;
+            if (bairro == null) return NotFound(); // 404 Not Found
+            return Ok(bairro); // 200 OK com a entidade
         }
 
+        /// <summary>
+        /// Cria um novo bairro.
+        /// </summary>
+        /// <param name="bairro">Dados do bairro.</param>
         [HttpPost]
         public async Task<ActionResult> Post(Bairro bairro)
         {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(bairro.NmBairro))
-                    return BadRequest(new { StatusCode = 400, Message = "O nome do bairro é obrigatório." });
-
-                if (bairro.NmBairro.Length > 100)
-                    return BadRequest(new { StatusCode = 400, Message = "O nome do bairro não pode exceder 100 caracteres." });
-
-                _context.Bairros.Add(bairro);
-                await _context.SaveChangesAsync();
-
-                return CreatedAtAction(nameof(Get), new { idBairro = bairro.IdBairro }, bairro);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { StatusCode = 400, Message = $"Erro ao cadastrar bairro: {ex.Message}" });
-            }
+            var created = await _service.CreateAsync(bairro);
+            return CreatedAtRoute("GetBairro", new { idBairro = created.IdBairro }, created); // 201 Created com header 'Location'
         }
 
-        [HttpPut("{idBairro:length(24)}")]
+        /// <summary>
+        /// Atualiza um bairro existente.
+        /// </summary>
+        /// <param name="idBairro">Id do bairro.</param>
+        /// <param name="bairro">Dados do bairro.</param>
+        [HttpPut("{idBairro}")]
         public async Task<ActionResult> Put(int idBairro, Bairro bairro)
         {
             if (idBairro != bairro.IdBairro)
                 return BadRequest(new { StatusCode = 400, Message = "ID da rota não corresponde ao objeto enviado." });
-
-            _context.Entry(bairro).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-            return NoContent();
+            var existente = await _service.GetByIdAsync(idBairro);
+            if (existente == null) return NotFound();
+            try
+            {
+                await _service.UpdateAsync(bairro);
+                return NoContent(); // Retorna 204 No Content
+            }
+            catch (Exception)
+            {
+                // Pode indicar um problema de concorrência ou falha na atualização
+                return StatusCode(500, "Ocorreu um erro ao atualizar o bairro.");
+            }
         }
 
-        [HttpDelete("{idBairro:length(24)}")]
+    /// <summary>
+    /// Remove um bairro pelo seu id.
+    /// </summary>
+        /// <param name="idBairro">Id do bairro.</param>
+        [HttpDelete("{idBairro}")]
         public async Task<ActionResult> Delete(int idBairro)
         {
-            var bairro = await _context.Bairros.FindAsync(idBairro);
-            if (bairro == null) return NotFound();
+            var existente = await _service.GetByIdAsync(idBairro);
+            if (existente == null) return NotFound();
+            var ok = await _service.DeleteAsync(idBairro);
+            if (!ok) return StatusCode(500, "Ocorreu um erro ao remover o bairro.");
 
-            _context.Bairros.Remove(bairro);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            return NoContent(); // Retorna 204 No Content
         }
     }
 }

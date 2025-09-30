@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using MottuWebApplication.Infrastructure.Data;
 using MottuWebApplication.MottuWebApplication.Domain.Entities;
+using MottuWebApplication.Application.Interfaces;
 
 namespace MottuWebApplication.Controllers
 {
@@ -9,77 +8,70 @@ namespace MottuWebApplication.Controllers
     [Route("api/[controller]")]
     public class ManutencaoController : ControllerBase
     {
-        private readonly AppDbContext _context;
+    private readonly IManutencaoService _service;
 
-        public ManutencaoController(AppDbContext context)
-        {
-            _context = context;
-        }
+    public ManutencaoController(IManutencaoService service) => _service = service;
 
+        /// <summary>
+        /// Retorna todas as manutenções cadastradas.
+        /// </summary>
+        /// <returns>Lista de manutenções.</returns>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Manutencao>>> Get()
-        {
-            return await _context.Manutencoes.ToListAsync();
-        }
+        public async Task<ActionResult<IEnumerable<Manutencao>>> Get() => Ok(await _service.GetAllAsync());
 
-        [HttpGet("{idManutencao:length(24)}")]
+        /// <summary>
+        /// Retorna uma manutenção específica pelo id.
+        /// </summary>
+        /// <param name="idManutencao">Id da manutenção.</param>
+    [HttpGet("{idManutencao}", Name = "GetManutencao")]
         public async Task<ActionResult<Manutencao>> Get(int idManutencao)
         {
-            var manutencao = await _context.Manutencoes.FindAsync(idManutencao);
+            var manutencao = await _service.GetByIdAsync(idManutencao);
 
             if (manutencao == null)
-                return NotFound();
+                return NotFound(); // 404 Not Found quando não encontrado
 
-            return manutencao;
+            return Ok(manutencao); // 200 OK com a entidade
         }
 
+        /// <summary>
+        /// Cria uma nova manutenção.
+        /// </summary>
+        /// <param name="manutencao">Dados da manutenção.</param>
         [HttpPost]
         public async Task<ActionResult> Post(Manutencao manutencao)
         {
-            try
-            {
-                if (manutencao.DtEntrada == default)
-                    return BadRequest(new { StatusCode = 400, Message = "A data de entrada é obrigatória." });
-
-                if (string.IsNullOrWhiteSpace(manutencao.DsManutencao))
-                    return BadRequest(new { StatusCode = 400, Message = "A descrição da manutenção é obrigatória." });
-
-                if (manutencao.DsManutencao.Length > 300)
-                    return BadRequest(new { StatusCode = 400, Message = "A descrição da manutenção não pode ultrapassar 300 caracteres." });
-
-                _context.Manutencoes.Add(manutencao);
-                await _context.SaveChangesAsync();
-
-                return CreatedAtAction(nameof(Get), new { idManutencao = manutencao.IdManutencao }, manutencao);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { StatusCode = 400, Message = $"Erro ao cadastrar manutenção: {ex.Message}" });
-            }
+            var created = await _service.CreateAsync(manutencao);
+            return CreatedAtRoute("GetManutencao", new { idManutencao = created.IdManutencao }, created); // 201 Created com header 'Location'
         }
 
-        [HttpPut("{idManutencao:length(24)}")]
+        /// <summary>
+        /// Atualiza uma manutenção existente.
+        /// </summary>
+        /// <param name="idManutencao">Id da manutenção.</param>
+        /// <param name="manutencao">Dados da manutenção.</param>
+        [HttpPut("{idManutencao}")]
         public async Task<ActionResult> Put(int idManutencao, Manutencao manutencao)
         {
             if (idManutencao != manutencao.IdManutencao)
                 return BadRequest(new { StatusCode = 400, Message = "ID da manutenção não corresponde ao objeto enviado." });
+            await _service.UpdateAsync(manutencao);
 
-            _context.Entry(manutencao).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            return NoContent(); // Retorna 204 No Content
+            // Pode indicar um problema de concorrência ou falha na atualização
         }
 
-        [HttpDelete("{idManutencao:length(24)}")]
+        /// <summary>
+        /// Remove uma manutenção pelo seu id.
+        /// </summary>
+        /// <param name="idManutencao">Id da manutenção.</param>
+        [HttpDelete("{idManutencao}")]
         public async Task<ActionResult> Delete(int idManutencao)
         {
-            var manutencao = await _context.Manutencoes.FindAsync(idManutencao);
-            if (manutencao == null) return NotFound();
+            var ok = await _service.DeleteAsync(idManutencao);
+            if (!ok) return NotFound();
 
-            _context.Manutencoes.Remove(manutencao);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            return NoContent(); // Retorna 204 No Content
         }
 
         /// <summary>
@@ -88,11 +80,8 @@ namespace MottuWebApplication.Controllers
         [HttpGet("moto/{idMoto}")]
         public async Task<ActionResult<IEnumerable<Manutencao>>> GetByMoto(int idMoto)
         {
-            var manutencoes = await _context.Manutencoes
-                .Where(m => m.IdMoto == idMoto)
-                .ToListAsync();
-
-            return manutencoes;
+            var manutencoes = await _service.GetByMotoAsync(idMoto);
+            return Ok(manutencoes);
         }
 
         /// <summary>
@@ -101,11 +90,8 @@ namespace MottuWebApplication.Controllers
         [HttpGet("dataentrada/{data}")]
         public async Task<ActionResult<IEnumerable<Manutencao>>> GetByDataEntrada(DateTime data)
         {
-            var manutencoes = await _context.Manutencoes
-                .Where(m => m.DtEntrada.Date >= data.Date)
-                .ToListAsync();
-
-            return manutencoes;
+            var manutencoes = await _service.GetByDataEntradaAsync(data);
+            return Ok(manutencoes);
         }
     }
 }

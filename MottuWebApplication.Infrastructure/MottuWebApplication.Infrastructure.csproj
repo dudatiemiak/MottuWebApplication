@@ -14,10 +14,12 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.5" />
     <PackageReference Include="Oracle.EntityFrameworkCore" Version="9.23.80" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.5" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\MottuWebApplication.Domain\MottuWebApplication.Domain.csproj" />
+    <ProjectReference Include="..\MottuWebApplication.Application\MottuWebApplication.Application.csproj" />
   </ItemGroup>
 
 </Project>

@@ -81,6 +81,19 @@ Alguns exemplos práticos (corpos em JSON). Consulte o Swagger para o catálogo 
 }
 ```
 
+- PUT atualizar: PUT /api/Cliente/1
+
+```json
+{
+	"idCliente": 1,
+	"nmCliente": "João da Silva",
+	"nrCpf": "123.456.789-00",
+	"nmEmail": "joao.silva@empresa.com",
+	"idLogradouro": 10
+}
+```
+Respostas: 204 No Content | 400 Bad Request (id divergente) | 404 Not Found
+
 2) Estados
 
 - GET todos: GET /api/Estado
@@ -92,6 +105,17 @@ Alguns exemplos práticos (corpos em JSON). Consulte o Swagger para o catálogo 
 	"nmEstado": "São Paulo"
 }
 ```
+
+- PUT atualizar: PUT /api/Estado/5
+
+```json
+{
+	"idEstado": 5,
+	"nmEstado": "Minas Gerais",
+	"idPais": 1
+}
+```
+Respostas: 204 No Content | 400 Bad Request (id divergente) | 404 Not Found
 
 3) Motos
 
@@ -110,6 +134,21 @@ Alguns exemplos práticos (corpos em JSON). Consulte o Swagger para o catálogo 
 }
 ```
 
+- PUT atualizar: PUT /api/Moto/12
+
+```json
+{
+	"idMoto": 12,
+	"nmPlaca": "ABC1D23",
+	"stMoto": "Em manutenção",
+	"kmRodado": 1500.0,
+	"idCliente": 1,
+	"idModelo": 2,
+	"idFilialDepartamento": 3
+}
+```
+Respostas: 204 No Content | 400 Bad Request (id divergente) | 404 Not Found
+
 4) Países
 
 - GET todos: GET /api/Pais
@@ -122,9 +161,65 @@ Alguns exemplos práticos (corpos em JSON). Consulte o Swagger para o catálogo 
 }
 ```
 
+5) Departamentos
+
+- GET todos: GET /api/Departamento
+- GET por ID: GET /api/Departamento/2
+- POST criar:
+
+```json
+{
+	"nmDepartamento": "Operações",
+	"dsDepartamento": "Coordena as operações diárias"
+}
+```
+
+- PUT atualizar: PUT /api/Departamento/2
+
+```json
+{
+	"idDepartamento": 2,
+	"nmDepartamento": "Operações",
+	"dsDepartamento": "Coordena as operações e logística"
+}
+```
+Respostas: 204 No Content | 400 Bad Request (id divergente) | 404 Not Found
+
+6) Funcionários
+
+- GET todos: GET /api/Funcionario
+- GET por ID: GET /api/Funcionario/7
+- POST criar:
+
+```json
+{
+	"nmFuncionario": "Maria Souza",
+	"nmCargo": "Analista",
+	"nmEmailCorporativo": "maria.souza@empresa.com",
+	"nmSenha": "SenhaForte@123",
+	"idFilial": 3
+}
+```
+
+- PUT atualizar: PUT /api/Funcionario/7
+
+```json
+{
+	"idFuncionario": 7,
+	"nmFuncionario": "Maria Souza",
+	"nmCargo": "Analista Sênior",
+	"nmEmailCorporativo": "maria.souza@empresa.com",
+	"nmSenha": "SenhaForte@123",
+	"idFilial": 3
+}
+```
+Respostas: 204 No Content | 400 Bad Request (id divergente) | 404 Not Found
+
 Observação: Todas as demais entidades seguem o mesmo padrão CRUD (GET, GET por ID, POST, PUT, DELETE).
 
 ---
+
+
 
 ## 🧪 Testes – como rodar
 

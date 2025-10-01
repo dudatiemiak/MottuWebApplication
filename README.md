@@ -10,7 +10,7 @@
 ## 👨‍👩‍👧 Integrantes
 
 - Eduarda Tiemi Akamini Machado – RM 554756 – 2TDSPH
-- Felipe Pizzinato Bigatto – RM 555141 – 2TDSPH
+- Felipe Pizzinato Bigatto Garcia – RM 555141 – 2TDSPW
 - Gustavo de Oliveira Turci Sandrini – RM 557505 – 2TDSPW
 
 ---
@@ -102,7 +102,8 @@ Respostas: 204 No Content | 400 Bad Request (id divergente) | 404 Not Found
 
 ```json
 {
-	"nmEstado": "São Paulo"
+  "nmEstado": "Acre",
+  "idPais": 1
 }
 ```
 
@@ -125,12 +126,12 @@ Respostas: 204 No Content | 400 Bad Request (id divergente) | 404 Not Found
 
 ```json
 {
-	"nmPlaca": "ABC1D23",
-	"stMoto": "Ativa",
-	"kmRodado": 1200.5,
-	"idCliente": 1,
-	"idModelo": 2,
-	"idFilialDepartamento": 3
+  "nmPlaca": "ABC1D23",
+  "stMoto": "Ativo",
+  "kmRodado": 1200.5,
+  "idCliente": 1,
+  "idModelo": 1,
+  "idFilialDepartamento": 1
 }
 ```
 
@@ -240,4 +241,4 @@ dotnet test .\MottuWebApplication.sln -c Debug
 
 ---
 
-Qualquer dúvida ou sugestão é bem-vinda — consulte o Swagger para detalhes das rotas e modelos.
+Consulte o Swagger para detalhes das rotas e modelos.

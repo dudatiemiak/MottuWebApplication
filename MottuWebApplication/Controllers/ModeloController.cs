@@ -20,7 +20,7 @@ namespace MottuWebApplication.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Modelo>>> Get()
         {
-            return Ok(await _service.GetAllAsync());
+            return Ok(await _service.GetAllModelosAsync());
         }
 
         /// <summary>
@@ -30,7 +30,7 @@ namespace MottuWebApplication.Controllers
         [HttpGet("{idModelo}", Name = "GetModelo")]
         public async Task<ActionResult<Modelo>> Get(int idModelo)
         {
-            var modelo = await _service.GetByIdAsync(idModelo);
+            var modelo = await _service.GetModeloByIdAsync(idModelo);
             if (modelo == null)
                 return NotFound(); // 404 Not Found quando não encontrado
             return Ok(modelo); // 200 OK com a entidade
@@ -43,8 +43,8 @@ namespace MottuWebApplication.Controllers
         [HttpPost]
         public async Task<ActionResult> Post(Modelo modelo)
         {
-            var created = await _service.CreateAsync(modelo);
-            return CreatedAtRoute("GetModelo", new { idModelo = created.IdModelo }, created); // 201 Created com header 'Location'
+            await _service.CreateModeloAsync(modelo);
+            return CreatedAtRoute("GetModelo", new { idModelo = modelo.IdModelo }, modelo);
         }
 
         /// <summary>
@@ -53,22 +53,13 @@ namespace MottuWebApplication.Controllers
         /// <param name="idModelo">Id do modelo.</param>
         /// <param name="modelo">Dados do modelo.</param>
         [HttpPut("{idModelo}")]
-        public async Task<ActionResult> Put(int idModelo, Modelo modelo)
+        public async Task<ActionResult> Put(int idModelo, Modelo modeloIn)
         {
-            if (idModelo != modelo.IdModelo)
+            if (idModelo != modeloIn.IdModelo)
                 return BadRequest(new { StatusCode = 400, Message = "ID da rota não corresponde ao objeto enviado." });
-            var existente = await _service.GetByIdAsync(idModelo);
-            if (existente == null) return NotFound();
-            try
-            {
-                await _service.UpdateAsync(modelo);
-                return NoContent(); // Retorna 204 No Content
-            }
-            catch (Exception)
-            {
-                // Pode indicar um problema de concorrência ou falha na atualização
-                return StatusCode(500, "Ocorreu um erro ao atualizar o modelo.");
-            }
+            var ok = await _service.UpdateModeloAsync(idModelo, modeloIn);
+            if (!ok) return NotFound();
+            return NoContent();
         }
 
         /// <summary>
@@ -78,9 +69,9 @@ namespace MottuWebApplication.Controllers
         [HttpDelete("{idModelo}")]
         public async Task<ActionResult> Delete(int idModelo)
         {
-            var existente = await _service.GetByIdAsync(idModelo);
+            var existente = await _service.GetModeloByIdAsync(idModelo);
             if (existente == null) return NotFound();
-            var ok = await _service.DeleteAsync(idModelo);
+            var ok = await _service.DeleteModeloAsync(idModelo);
             if (!ok) return StatusCode(500, "Ocorreu um erro ao remover o modelo.");
 
             return NoContent(); // Retorna 204 No Content

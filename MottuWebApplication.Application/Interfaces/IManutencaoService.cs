@@ -4,13 +4,13 @@ namespace MottuWebApplication.Application.Interfaces
 {
     public interface IManutencaoService
     {
-        Task<IReadOnlyList<Manutencao>> GetAllAsync();
-        Task<Manutencao?> GetByIdAsync(int id);
-        Task<Manutencao> CreateAsync(Manutencao entity);
-        Task UpdateAsync(Manutencao entity);
-        Task<bool> DeleteAsync(int id);
+        Task<IEnumerable<Manutencao>> GetAllManutencoesAsync();
+        Task<Manutencao?> GetManutencaoByIdAsync(int id);
+        Task CreateManutencaoAsync(Manutencao newManutencao);
+        Task<bool> UpdateManutencaoAsync(int id, Manutencao updatedManutencao);
+        Task<bool> DeleteManutencaoAsync(int id);
 
-        Task<IReadOnlyList<Manutencao>> GetByMotoAsync(int idMoto);
-        Task<IReadOnlyList<Manutencao>> GetByDataEntradaAsync(DateTime minDate);
+        Task<IEnumerable<Manutencao>> GetByMotoAsync(int idMoto);
+        Task<IEnumerable<Manutencao>> GetByDataEntradaAsync(DateTime minDate);
     }
 }

@@ -19,7 +19,7 @@ namespace MottuWebApplication.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Estado>>> Get()
         {
-            return Ok(await _service.GetAllAsync());
+            return Ok(await _service.GetAllEstadosAsync()); // 200 OK com a lista de estados
         }
 
         /// <summary>
@@ -29,7 +29,7 @@ namespace MottuWebApplication.Controllers
         [HttpGet("{idEstado}", Name = "GetEstado")]
         public async Task<ActionResult<Estado>> Get(int idEstado)
         {
-            var estado = await _service.GetByIdAsync(idEstado);
+            var estado = await _service.GetEstadoByIdAsync(idEstado);
 
             if (estado == null)
                 return NotFound(); // 404 Not Found quando não encontrado
@@ -43,8 +43,8 @@ namespace MottuWebApplication.Controllers
         [HttpPost]
         public async Task<ActionResult> Post(Estado estado)
         {
-            var created = await _service.CreateAsync(estado);
-            return CreatedAtRoute("GetEstado", new { idEstado = created.IdEstado }, created); // 201 Created com header 'Location'
+            await _service.CreateEstadoAsync(estado);
+            return CreatedAtRoute("GetEstado", new { idEstado = estado.IdEstado }, estado); // 201 Created com Location e corpo do estado criado
         }
 
         /// <summary>
@@ -53,21 +53,13 @@ namespace MottuWebApplication.Controllers
         /// <param name="idEstado">Id do estado.</param>
         /// <param name="estado">Dados do estado.</param>
         [HttpPut("{idEstado}")]
-        public async Task<ActionResult> Put(int idEstado, Estado estado)
+        public async Task<ActionResult> Put(int idEstado, Estado estadoIn)
         {
-            if (idEstado != estado.IdEstado)
-                return BadRequest(new { StatusCode = 400, Message = "ID da rota não corresponde ao objeto enviado." }); // 400 Bad Request quando IDs não correspondem
-            var existente = await _service.GetByIdAsync(idEstado);
-            if (existente == null) return NotFound(); // 404 Not Found se não existir para atualizar
-            try
-            {
-                await _service.UpdateAsync(estado);
-                return NoContent(); // Retorna 204 No Content
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, "Ocorreu um erro ao atualizar o estado."); // 500 Internal Server Error (concorrência/falha)
-            }
+            if (idEstado != estadoIn.IdEstado)
+                return BadRequest(new { StatusCode = 400, Message = "ID da rota não corresponde ao objeto enviado." }); // 400 Bad Request (ID divergente)
+            var ok = await _service.UpdateEstadoAsync(idEstado, estadoIn);
+            if (!ok) return NotFound(); // 404 Not Found se não existir para atualizar
+            return NoContent(); // 204 No Content
         }
 
         /// <summary>
@@ -77,11 +69,11 @@ namespace MottuWebApplication.Controllers
         [HttpDelete("{idEstado}")]
         public async Task<ActionResult> Delete(int idEstado)
         {
-            var existente = await _service.GetByIdAsync(idEstado);
-            if (existente == null) return NotFound();
+            var existente = await _service.GetEstadoByIdAsync(idEstado);
+            if (existente == null) return NotFound(); // 404 Not Found quando não há registro para excluir
 
-            var ok = await _service.DeleteAsync(idEstado);
-            if (!ok) return StatusCode(500, "Ocorreu um erro ao remover o estado."); // 500 em falha de exclusão
+            var ok = await _service.DeleteEstadoAsync(idEstado);
+            if (!ok) return StatusCode(500, "Ocorreu um erro ao remover o estado."); // 500 Internal Server Error em falha de exclusão
 
             return NoContent(); // 204 No Content
         }

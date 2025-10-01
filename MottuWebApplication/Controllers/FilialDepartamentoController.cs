@@ -19,7 +19,7 @@ namespace MottuWebApplication.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<FilialDepartamento>>> Get()
         {
-            return Ok(await _service.GetAllAsync());
+            return Ok(await _service.GetAllFilialDepartamentosAsync()); // 200 OK com a lista de relações
         }
 
         /// <summary>
@@ -29,7 +29,7 @@ namespace MottuWebApplication.Controllers
         [HttpGet("{idFilialDepartamento}", Name = "GetFilialDepartamento")]
         public async Task<ActionResult<FilialDepartamento>> Get(int idFilialDepartamento)
         {
-            var filialDepartamento = await _service.GetByIdAsync(idFilialDepartamento);
+            var filialDepartamento = await _service.GetFilialDepartamentoByIdAsync(idFilialDepartamento);
 
             if (filialDepartamento == null)
                 return NotFound(); // 404 Not Found quando não encontrado
@@ -43,18 +43,11 @@ namespace MottuWebApplication.Controllers
         [HttpPost]
         public async Task<ActionResult> Post(FilialDepartamento filialDepartamento)
         {
-            try
-            {
-                if (filialDepartamento.DtEntrada == default)
-                    return BadRequest(new { StatusCode = 400, Message = "A data de entrada é obrigatória." });
+            if (filialDepartamento.DtEntrada == default)
+                return BadRequest(new { StatusCode = 400, Message = "A data de entrada é obrigatória." }); // 400 Bad Request (validação de entrada)
 
-                var created = await _service.CreateAsync(filialDepartamento);
-                return CreatedAtRoute("GetFilialDepartamento", new { idFilialDepartamento = created.IdFilialDepartamento }, created); // Retorna 201 Created com o header 'Location' para o novo recurso.
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { StatusCode = 400, Message = $"Erro ao cadastrar relação filial-departamento: {ex.Message}" });
-            }
+            await _service.CreateFilialDepartamentoAsync(filialDepartamento);
+            return CreatedAtRoute("GetFilialDepartamento", new { idFilialDepartamento = filialDepartamento.IdFilialDepartamento }, filialDepartamento); // 201 Created com Location e corpo do recurso criado
         }
 
         /// <summary>
@@ -63,22 +56,13 @@ namespace MottuWebApplication.Controllers
         /// <param name="idFilialDepartamento">Id da relação.</param>
         /// <param name="filialDepartamento">Dados da relação.</param>
         [HttpPut("{idFilialDepartamento}")]
-        public async Task<ActionResult> Put(int idFilialDepartamento, FilialDepartamento filialDepartamento)
+        public async Task<ActionResult> Put(int idFilialDepartamento, FilialDepartamento filialDepartamentoIn)
         {
-            if (idFilialDepartamento != filialDepartamento.IdFilialDepartamento)
-                return BadRequest(new { StatusCode = 400, Message = "ID da rota não corresponde ao objeto enviado." });
-            var existente = await _service.GetByIdAsync(idFilialDepartamento);
-            if (existente == null) return NotFound();
-            try
-            {
-                await _service.UpdateAsync(filialDepartamento);
-                return NoContent(); // Retorna 204 No Content
-            }
-            catch (Exception)
-            {
-                // Pode indicar um problema de concorrência ou falha na atualização
-                return StatusCode(500, "Ocorreu um erro ao atualizar a relação filial-departamento.");
-            }
+            if (idFilialDepartamento != filialDepartamentoIn.IdFilialDepartamento)
+                return BadRequest(new { StatusCode = 400, Message = "ID da rota não corresponde ao objeto enviado." }); // 400 Bad Request (ID divergente)
+            var ok = await _service.UpdateFilialDepartamentoAsync(idFilialDepartamento, filialDepartamentoIn);
+            if (!ok) return NotFound(); // 404 Not Found quando não existir para atualização
+            return NoContent(); // 204 No Content
         }
 
         /// <summary>
@@ -88,9 +72,9 @@ namespace MottuWebApplication.Controllers
         [HttpDelete("{idFilialDepartamento}")]
         public async Task<ActionResult> Delete(int idFilialDepartamento)
         {
-            var existente = await _service.GetByIdAsync(idFilialDepartamento);
-            if (existente == null) return NotFound();
-            var ok = await _service.DeleteAsync(idFilialDepartamento);
+            var existente = await _service.GetFilialDepartamentoByIdAsync(idFilialDepartamento);
+            if (existente == null) return NotFound(); // 404 Not Found quando não há registro para excluir
+            var ok = await _service.DeleteFilialDepartamentoAsync(idFilialDepartamento);
             if (!ok) return StatusCode(500, "Ocorreu um erro ao remover a relação filial-departamento.");
 
             return NoContent(); // Retorna 204 No Content

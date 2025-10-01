@@ -19,7 +19,7 @@ namespace MottuWebApplication.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Pais>>> Get()
         {
-            return Ok(await _service.GetAllAsync());
+            return Ok(await _service.GetAllPaisesAsync());
         }
 
         /// <summary>
@@ -29,7 +29,7 @@ namespace MottuWebApplication.Controllers
         [HttpGet("{idPais}", Name = "GetPais")]
         public async Task<ActionResult<Pais>> Get(int idPais)
         {
-            var pais = await _service.GetByIdAsync(idPais);
+            var pais = await _service.GetPaisByIdAsync(idPais);
             if (pais == null)
                 return NotFound(); // 404 Not Found quando não encontrado
             return Ok(pais); // 200 OK com a entidade
@@ -42,8 +42,8 @@ namespace MottuWebApplication.Controllers
         [HttpPost]
         public async Task<ActionResult> Post(Pais pais)
         {
-            var created = await _service.CreateAsync(pais);
-            return CreatedAtRoute("GetPais", new { idPais = created.IdPais }, created); // 201 Created com header 'Location'
+            await _service.CreatePaisAsync(pais);
+            return CreatedAtRoute("GetPais", new { idPais = pais.IdPais }, pais);
         }
 
         /// <summary>
@@ -52,21 +52,13 @@ namespace MottuWebApplication.Controllers
         /// <param name="idPais">Id do país.</param>
         /// <param name="pais">Dados do país.</param>
         [HttpPut("{idPais}")]
-        public async Task<ActionResult> Put(int idPais, Pais pais)
+        public async Task<ActionResult> Put(int idPais, Pais paisIn)
         {
-            if (idPais != pais.IdPais)
-                return BadRequest(new { StatusCode = 400, Message = "ID da rota não corresponde ao objeto enviado." }); // 400 Bad Request id mismatch
-            var existente = await _service.GetByIdAsync(idPais);
-            if (existente == null) return NotFound(); // 404 Not Found se não existir
-            try
-            {
-                await _service.UpdateAsync(pais);
-                return NoContent(); // Retorna 204 No Content
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, "Ocorreu um erro ao atualizar o país."); // 500 Internal Server Error (concorrência/falha)
-            }
+            if (idPais != paisIn.IdPais)
+                return BadRequest(new { StatusCode = 400, Message = "ID da rota não corresponde ao objeto enviado." });
+            var ok = await _service.UpdatePaisAsync(idPais, paisIn);
+            if (!ok) return NotFound();
+            return NoContent();
         }
 
         /// <summary>
@@ -76,9 +68,9 @@ namespace MottuWebApplication.Controllers
         [HttpDelete("{idPais}")]
         public async Task<ActionResult> Delete(int idPais)
         {
-            var existente = await _service.GetByIdAsync(idPais);
+            var existente = await _service.GetPaisByIdAsync(idPais);
             if (existente == null) return NotFound();
-            var ok = await _service.DeleteAsync(idPais);
+            var ok = await _service.DeletePaisAsync(idPais);
             if (!ok) return StatusCode(500, "Ocorreu um erro ao remover o país."); // 500 em falha de exclusão 
 
             return NoContent(); // 204 No Content

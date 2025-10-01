@@ -19,7 +19,7 @@ namespace MottuWebApplication.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Funcionario>>> Get()
         {
-            return Ok(await _service.GetAllAsync());
+            return Ok(await _service.GetAllFuncionariosAsync()); // 200 OK com a lista de funcionários
         }
 
     /// <summary>
@@ -29,12 +29,12 @@ namespace MottuWebApplication.Controllers
         [HttpGet("{idFuncionario}", Name = "GetFuncionario")]
         public async Task<ActionResult<Funcionario>> Get(int idFuncionario)
         {
-            var funcionario = await _service.GetByIdAsync(idFuncionario);
+            var funcionario = await _service.GetFuncionarioByIdAsync(idFuncionario);
 
             if (funcionario == null)
                 return NotFound(); // 404 Not Found quando não encontrado
 
-            return Ok(funcionario); // 200 OK com a entidade
+            return Ok(funcionario); // 200 OK com o funcionário solicitado
         }
 
         /// <summary>
@@ -44,8 +44,8 @@ namespace MottuWebApplication.Controllers
         [HttpPost]
         public async Task<ActionResult> Post(Funcionario funcionario)
         {
-            var created = await _service.CreateAsync(funcionario);
-            return CreatedAtRoute("GetFuncionario", new { idFuncionario = created.IdFuncionario }, created); // 201 Created com header 'Location'
+            await _service.CreateFuncionarioAsync(funcionario);
+            return CreatedAtRoute("GetFuncionario", new { idFuncionario = funcionario.IdFuncionario }, funcionario); // 201 Created com Location e corpo do funcionário criado
         }
 
         /// <summary>
@@ -54,22 +54,13 @@ namespace MottuWebApplication.Controllers
         /// <param name="idFuncionario">Id do funcionário.</param>
         /// <param name="funcionario">Dados do funcionário.</param>
         [HttpPut("{idFuncionario}")]
-        public async Task<ActionResult> Put(int idFuncionario, Funcionario funcionario)
+        public async Task<ActionResult> Put(int idFuncionario, Funcionario funcionarioIn)
         {
-            if (idFuncionario != funcionario.IdFuncionario)
-                return BadRequest(new { StatusCode = 400, Message = "ID informado não corresponde ao funcionário enviado." });
-            var existente = await _service.GetByIdAsync(idFuncionario);
-            if (existente == null) return NotFound();
-            try
-            {
-                await _service.UpdateAsync(funcionario);
-                return NoContent(); // Retorna 204 No Content
-            }
-            catch (Exception)
-            {
-                // Pode indicar um problema de concorrência ou falha na atualização
-                return StatusCode(500, "Ocorreu um erro ao atualizar o funcionário.");
-            }
+            if (idFuncionario != funcionarioIn.IdFuncionario)
+                return BadRequest(new { StatusCode = 400, Message = "ID informado não corresponde ao funcionário enviado." }); // 400 Bad Request (ID divergente)
+            var ok = await _service.UpdateFuncionarioAsync(idFuncionario, funcionarioIn);
+            if (!ok) return NotFound(); // 404 Not Found quando não existir para atualização
+            return NoContent(); // 204 No Content
         }
 
         /// <summary>
@@ -79,10 +70,10 @@ namespace MottuWebApplication.Controllers
         [HttpDelete("{idFuncionario}")]
         public async Task<ActionResult> Delete(int idFuncionario)
         {
-            var existente = await _service.GetByIdAsync(idFuncionario);
-            if (existente == null) return NotFound();
-            var ok = await _service.DeleteAsync(idFuncionario);
-            if (!ok) return StatusCode(500, "Ocorreu um erro ao remover o funcionário.");
+            var existente = await _service.GetFuncionarioByIdAsync(idFuncionario);
+            if (existente == null) return NotFound(); // 404 Not Found quando não há registro para excluir
+            var ok = await _service.DeleteFuncionarioAsync(idFuncionario);
+            if (!ok) return StatusCode(500, "Ocorreu um erro ao remover o funcionário."); // 500 Internal Server Error em falha de exclusão
 
             return NoContent(); // Retorna 204 No Content
         }
@@ -95,7 +86,7 @@ namespace MottuWebApplication.Controllers
         public async Task<ActionResult<IEnumerable<Funcionario>>> GetByNome(string nome)
         {
             var funcionarios = await _service.GetByNomeAsync(nome);
-            return Ok(funcionarios);
+            return Ok(funcionarios); // 200 OK com a lista filtrada por nome
         }
 
         /// <summary>
@@ -106,7 +97,7 @@ namespace MottuWebApplication.Controllers
         public async Task<ActionResult<IEnumerable<Funcionario>>> GetByCargo(string cargo)
         {
             var funcionarios = await _service.GetByCargoAsync(cargo);
-            return Ok(funcionarios);
+            return Ok(funcionarios); // 200 OK com a lista filtrada por cargo
         }
 
         /// <summary>
@@ -117,7 +108,7 @@ namespace MottuWebApplication.Controllers
         public async Task<ActionResult<IEnumerable<Funcionario>>> GetByEmail(string email)
         {
             var funcionarios = await _service.GetByEmailAsync(email);
-            return Ok(funcionarios);
+            return Ok(funcionarios); // 200 OK com a lista filtrada por e-mail
         }
     }
 }

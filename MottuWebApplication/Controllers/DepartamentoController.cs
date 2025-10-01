@@ -20,7 +20,7 @@ namespace MottuWebApplication.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Departamento>>> Get()
         {
-            return Ok(await _service.GetAllAsync());
+            return Ok(await _service.GetAllDepartamentosAsync()); // 200 OK com a lista de departamentos
         }
 
         /// <summary>
@@ -30,7 +30,7 @@ namespace MottuWebApplication.Controllers
         [HttpGet("{idDepartamento}", Name = "GetDepartamento")]
         public async Task<ActionResult<Departamento>> Get(int idDepartamento)
         {
-            var departamento = await _service.GetByIdAsync(idDepartamento);
+            var departamento = await _service.GetDepartamentoByIdAsync(idDepartamento);
 
             if (departamento == null)
                 return NotFound(); // 404 Not Found quando não encontrado
@@ -44,8 +44,8 @@ namespace MottuWebApplication.Controllers
         [HttpPost]
         public async Task<ActionResult> Post(Departamento departamento)
         {
-            var created = await _service.CreateAsync(departamento);
-            return CreatedAtRoute("GetDepartamento", new { idDepartamento = created.IdDepartamento }, created); // 201 Created com header 'Location'
+            await _service.CreateDepartamentoAsync(departamento);
+            return CreatedAtRoute("GetDepartamento", new { idDepartamento = departamento.IdDepartamento }, departamento); // 201 Created com Location e corpo do departamento criado
         }
 
         /// <summary>
@@ -54,21 +54,13 @@ namespace MottuWebApplication.Controllers
         /// <param name="idDepartamento">Id do departamento.</param>
         /// <param name="departamento">Dados do departamento.</param>
         [HttpPut("{idDepartamento}")]
-        public async Task<ActionResult> Put(int idDepartamento, Departamento departamento)
+        public async Task<ActionResult> Put(int idDepartamento, Departamento departamentoIn)
         {
-            if (idDepartamento != departamento.IdDepartamento)
-                return BadRequest(new { StatusCode = 400, Message = "ID da rota não corresponde ao objeto enviado." }); // 400 Bad Request quando ID da rota não bate com o do corpo
-            var existente = await _service.GetByIdAsync(idDepartamento);
-            if (existente == null) return NotFound(); // 404 Not Found se não existir para atualizar
-            try
-            {
-                await _service.UpdateAsync(departamento);
-                return NoContent(); // Retorna 204 No Content
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, "Ocorreu um erro ao atualizar o departamento."); // 500 Internal Server Error (concorrência/falha)
-            }
+            if (idDepartamento != departamentoIn.IdDepartamento)
+                return BadRequest(new { StatusCode = 400, Message = "ID da rota não corresponde ao objeto enviado." }); // 400 Bad Request (ID divergente)
+            var ok = await _service.UpdateDepartamentoAsync(idDepartamento, departamentoIn);
+            if (!ok) return NotFound(); // 404 Not Found se não existir para atualizar
+            return NoContent(); // 204 No Content
         }
 
         /// <summary>
@@ -78,11 +70,11 @@ namespace MottuWebApplication.Controllers
         [HttpDelete("{idDepartamento}")]
         public async Task<ActionResult> Delete(int idDepartamento)
         {
-            var existente = await _service.GetByIdAsync(idDepartamento);
-            if (existente == null) return NotFound();
+            var existente = await _service.GetDepartamentoByIdAsync(idDepartamento);
+            if (existente == null) return NotFound(); // 404 Not Found quando não há registro para excluir
 
-            var ok = await _service.DeleteAsync(idDepartamento);
-            if (!ok) return StatusCode(500, "Ocorreu um erro ao remover o departamento."); // 500 em falha de exclusão
+            var ok = await _service.DeleteDepartamentoAsync(idDepartamento);
+            if (!ok) return StatusCode(500, "Ocorreu um erro ao remover o departamento."); // 500 Internal Server Error em falha de exclusão
 
             return NoContent(); // 204 No Content
         }

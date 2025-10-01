@@ -20,7 +20,7 @@ namespace MottuWebApplication.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Moto>>> Get()
         {
-            return Ok(await _motoService.GetAllAsync());
+            return Ok(await _motoService.GetAllMotosAsync());
         }
 
         /// <summary>
@@ -30,7 +30,7 @@ namespace MottuWebApplication.Controllers
         [HttpGet("{idMoto}", Name = "GetMoto")]
         public async Task<ActionResult<Moto>> Get(int idMoto)
         {
-            var moto = await _motoService.GetByIdAsync(idMoto);
+            var moto = await _motoService.GetMotoByIdAsync(idMoto);
 
             if (moto == null)
                 return NotFound(); // 404 Not Found quando não encontrado
@@ -45,8 +45,8 @@ namespace MottuWebApplication.Controllers
         [HttpPost]
         public async Task<ActionResult> Post(Moto moto)
         {
-            var created = await _motoService.CreateAsync(moto);
-            return CreatedAtRoute("GetMoto", new { idMoto = created.IdMoto }, created); // 201 Created com header 'Location'
+            await _motoService.CreateMotoAsync(moto);
+            return CreatedAtRoute("GetMoto", new { idMoto = moto.IdMoto }, moto);
         }
 
         /// <summary>
@@ -55,22 +55,13 @@ namespace MottuWebApplication.Controllers
         /// <param name="idMoto">Id da moto.</param>
         /// <param name="moto">Dados da moto.</param>
         [HttpPut("{idMoto}")]
-        public async Task<ActionResult> Put(int idMoto, Moto moto)
+        public async Task<ActionResult> Put(int idMoto, Moto motoIn)
         {
-            if (idMoto != moto.IdMoto)
+            if (idMoto != motoIn.IdMoto)
                 return BadRequest(new { StatusCode = 400, Message = "ID da moto não corresponde ao objeto enviado." });
-            var existente = await _motoService.GetByIdAsync(idMoto);
-            if (existente == null) return NotFound();
-            try
-            {
-                await _motoService.UpdateAsync(moto);
-                return NoContent(); // Retorna 204 No Content
-            }
-            catch (Exception)
-            {
-                // Pode indicar um problema de concorrência ou falha na atualização
-                return StatusCode(500, "Ocorreu um erro ao atualizar a moto.");
-            }
+            var ok = await _motoService.UpdateMotoAsync(idMoto, motoIn);
+            if (!ok) return NotFound();
+            return NoContent();
         }
 
         /// <summary>
@@ -80,9 +71,9 @@ namespace MottuWebApplication.Controllers
         [HttpDelete("{idMoto}")]
         public async Task<ActionResult> Delete(int idMoto)
         {
-            var existente = await _motoService.GetByIdAsync(idMoto);
+            var existente = await _motoService.GetMotoByIdAsync(idMoto);
             if (existente == null) return NotFound();
-            var ok = await _motoService.DeleteAsync(idMoto);
+            var ok = await _motoService.DeleteMotoAsync(idMoto);
             if (!ok) return StatusCode(500, "Ocorreu um erro ao remover a moto.");
 
             return NoContent(); // Retorna 204 No Content

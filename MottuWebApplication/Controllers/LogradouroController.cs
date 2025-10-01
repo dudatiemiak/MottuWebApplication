@@ -16,7 +16,7 @@ namespace MottuWebApplication.Controllers
         /// Retorna todos os logradouros.
         /// </summary>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Logradouro>>> Get() => Ok(await _service.GetAllAsync());
+        public async Task<ActionResult<IEnumerable<Logradouro>>> Get() => Ok(await _service.GetAllLogradourosAsync());
 
         /// <summary>
         /// Retorna um logradouro pelo identificador.
@@ -25,7 +25,7 @@ namespace MottuWebApplication.Controllers
         [HttpGet("{idLogradouro}", Name = "GetLogradouro")]
         public async Task<ActionResult<Logradouro>> Get(int idLogradouro)
         {
-            var logradouro = await _service.GetByIdAsync(idLogradouro);
+            var logradouro = await _service.GetLogradouroByIdAsync(idLogradouro);
 
             if (logradouro == null)
                 return NotFound(); // 404 Not Found quando não encontrado
@@ -40,8 +40,8 @@ namespace MottuWebApplication.Controllers
         [HttpPost]
         public async Task<ActionResult> Post(Logradouro logradouro)
         {
-            var created = await _service.CreateAsync(logradouro);
-            return CreatedAtRoute("GetLogradouro", new { idLogradouro = created.IdLogradouro }, created); // 201 Created com header 'Location'
+            await _service.CreateLogradouroAsync(logradouro);
+            return CreatedAtRoute("GetLogradouro", new { idLogradouro = logradouro.IdLogradouro }, logradouro);
         }
 
         /// <summary>
@@ -50,22 +50,13 @@ namespace MottuWebApplication.Controllers
         /// <param name="idLogradouro">Identificador do logradouro.</param>
         /// <param name="logradouro">Dados do logradouro.</param>
         [HttpPut("{idLogradouro}")]
-        public async Task<ActionResult> Put(int idLogradouro, Logradouro logradouro)
+        public async Task<ActionResult> Put(int idLogradouro, Logradouro logradouroIn)
         {
-            if (idLogradouro != logradouro.IdLogradouro)
+            if (idLogradouro != logradouroIn.IdLogradouro)
                 return BadRequest(new { StatusCode = 400, Message = "ID da rota não corresponde ao objeto enviado." });
-            var existente = await _service.GetByIdAsync(idLogradouro);
-            if (existente == null) return NotFound();
-            try
-            {
-                await _service.UpdateAsync(logradouro);
-                return NoContent(); // Retorna 204 No Content
-            }
-            catch (Exception)
-            {
-                // Pode indicar um problema de concorrência ou falha na atualização
-                return StatusCode(500, "Ocorreu um erro ao atualizar o logradouro.");
-            }
+            var ok = await _service.UpdateLogradouroAsync(idLogradouro, logradouroIn);
+            if (!ok) return NotFound();
+            return NoContent();
         }
 
         /// <summary>
@@ -75,9 +66,9 @@ namespace MottuWebApplication.Controllers
         [HttpDelete("{idLogradouro}")]
         public async Task<ActionResult> Delete(int idLogradouro)
         {
-            var existente = await _service.GetByIdAsync(idLogradouro);
+            var existente = await _service.GetLogradouroByIdAsync(idLogradouro);
             if (existente == null) return NotFound();
-            var ok = await _service.DeleteAsync(idLogradouro);
+            var ok = await _service.DeleteLogradouroAsync(idLogradouro);
             if (!ok) return StatusCode(500, "Ocorreu um erro ao remover o logradouro.");
 
             return NoContent(); // Retorna 204 No Content

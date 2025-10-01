@@ -17,7 +17,7 @@ namespace MottuWebApplication.Controllers
         /// </summary>
         /// <returns>Lista de manutenções.</returns>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Manutencao>>> Get() => Ok(await _service.GetAllAsync());
+        public async Task<ActionResult<IEnumerable<Manutencao>>> Get() => Ok(await _service.GetAllManutencoesAsync());
 
         /// <summary>
         /// Retorna uma manutenção específica pelo id.
@@ -26,7 +26,7 @@ namespace MottuWebApplication.Controllers
     [HttpGet("{idManutencao}", Name = "GetManutencao")]
         public async Task<ActionResult<Manutencao>> Get(int idManutencao)
         {
-            var manutencao = await _service.GetByIdAsync(idManutencao);
+            var manutencao = await _service.GetManutencaoByIdAsync(idManutencao);
 
             if (manutencao == null)
                 return NotFound(); // 404 Not Found quando não encontrado
@@ -41,8 +41,8 @@ namespace MottuWebApplication.Controllers
         [HttpPost]
         public async Task<ActionResult> Post(Manutencao manutencao)
         {
-            var created = await _service.CreateAsync(manutencao);
-            return CreatedAtRoute("GetManutencao", new { idManutencao = created.IdManutencao }, created); // 201 Created com header 'Location'
+            await _service.CreateManutencaoAsync(manutencao);
+            return CreatedAtRoute("GetManutencao", new { idManutencao = manutencao.IdManutencao }, manutencao);
         }
 
         /// <summary>
@@ -51,14 +51,13 @@ namespace MottuWebApplication.Controllers
         /// <param name="idManutencao">Id da manutenção.</param>
         /// <param name="manutencao">Dados da manutenção.</param>
         [HttpPut("{idManutencao}")]
-        public async Task<ActionResult> Put(int idManutencao, Manutencao manutencao)
+        public async Task<ActionResult> Put(int idManutencao, Manutencao manutencaoIn)
         {
-            if (idManutencao != manutencao.IdManutencao)
+            if (idManutencao != manutencaoIn.IdManutencao)
                 return BadRequest(new { StatusCode = 400, Message = "ID da manutenção não corresponde ao objeto enviado." });
-            await _service.UpdateAsync(manutencao);
-
-            return NoContent(); // Retorna 204 No Content
-            // Pode indicar um problema de concorrência ou falha na atualização
+            var ok = await _service.UpdateManutencaoAsync(idManutencao, manutencaoIn);
+            if (!ok) return NotFound();
+            return NoContent();
         }
 
         /// <summary>
@@ -68,7 +67,7 @@ namespace MottuWebApplication.Controllers
         [HttpDelete("{idManutencao}")]
         public async Task<ActionResult> Delete(int idManutencao)
         {
-            var ok = await _service.DeleteAsync(idManutencao);
+            var ok = await _service.DeleteManutencaoAsync(idManutencao);
             if (!ok) return NotFound();
 
             return NoContent(); // Retorna 204 No Content

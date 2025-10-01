@@ -4,10 +4,10 @@ namespace MottuWebApplication.Application.Interfaces
 {
     public interface IBairroService
     {
-        Task<IReadOnlyList<Bairro>> GetAllAsync();
-        Task<Bairro?> GetByIdAsync(int id);
-        Task<Bairro> CreateAsync(Bairro entity);
-        Task UpdateAsync(Bairro entity);
-        Task<bool> DeleteAsync(int id);
+        Task<IEnumerable<Bairro>> GetAllBairrosAsync();
+        Task<Bairro?> GetBairroByIdAsync(int id);
+        Task CreateBairroAsync(Bairro newBairro);
+        Task<bool> UpdateBairroAsync(int id, Bairro updatedBairro);
+        Task<bool> DeleteBairroAsync(int id);
     }
 }

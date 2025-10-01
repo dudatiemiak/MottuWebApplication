@@ -4,10 +4,10 @@ namespace MottuWebApplication.Application.Interfaces
 {
     public interface ILogradouroService
     {
-        Task<IReadOnlyList<Logradouro>> GetAllAsync();
-        Task<Logradouro?> GetByIdAsync(int id);
-        Task<Logradouro> CreateAsync(Logradouro entity);
-        Task UpdateAsync(Logradouro entity);
-        Task<bool> DeleteAsync(int id);
+        Task<IEnumerable<Logradouro>> GetAllLogradourosAsync();
+        Task<Logradouro?> GetLogradouroByIdAsync(int id);
+        Task CreateLogradouroAsync(Logradouro newLogradouro);
+        Task<bool> UpdateLogradouroAsync(int id, Logradouro updatedLogradouro);
+        Task<bool> DeleteLogradouroAsync(int id);
     }
 }

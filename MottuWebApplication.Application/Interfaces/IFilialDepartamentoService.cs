@@ -4,10 +4,10 @@ namespace MottuWebApplication.Application.Interfaces
 {
     public interface IFilialDepartamentoService
     {
-        Task<IReadOnlyList<FilialDepartamento>> GetAllAsync();
-        Task<FilialDepartamento?> GetByIdAsync(int id);
-        Task<FilialDepartamento> CreateAsync(FilialDepartamento entity);
-        Task UpdateAsync(FilialDepartamento entity);
-        Task<bool> DeleteAsync(int id);
+        Task<IEnumerable<FilialDepartamento>> GetAllFilialDepartamentosAsync();
+        Task<FilialDepartamento?> GetFilialDepartamentoByIdAsync(int id);
+        Task CreateFilialDepartamentoAsync(FilialDepartamento newFilialDepartamento);
+        Task<bool> UpdateFilialDepartamentoAsync(int id, FilialDepartamento updatedFilialDepartamento);
+        Task<bool> DeleteFilialDepartamentoAsync(int id);
     }
 }

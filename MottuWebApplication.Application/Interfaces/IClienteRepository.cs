@@ -2,13 +2,13 @@ using MottuWebApplication.MottuWebApplication.Domain.Entities;
 
 namespace MottuWebApplication.Application.Interfaces
 {
-    public interface IClienteService
+    public interface IClienteRepository
     {
-        Task<IEnumerable<Cliente>> GetAllClientesAsync();
-        Task<Cliente?> GetClienteByIdAsync(int id);
-        Task CreateClienteAsync(Cliente newCliente);
-        Task<bool> UpdateClienteAsync(int id, Cliente updatedCliente);
-        Task<bool> DeleteClienteAsync(int id);
+        Task<IEnumerable<Cliente>> GetAllAsync();
+        Task<Cliente?> GetByIdAsync(int id);
+        Task CreateAsync(Cliente cliente);
+        Task<bool> UpdateAsync(int id, Cliente clienteIn);
+        Task<bool> DeleteAsync(int id);
 
         Task<IEnumerable<Cliente>> GetByNomeAsync(string nome);
         Task<IEnumerable<Cliente>> GetByCpfAsync(string cpf);

@@ -22,8 +22,8 @@ namespace MottuWebApplication.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Cliente>>> Get()
         {
-            var clientes = await _service.GetAllAsync();
-            return Ok(clientes);
+            var clientes = await _service.GetAllClientesAsync();
+            return Ok(clientes); // 200 OK com a lista de clientes
         }
 
         /// <summary>
@@ -33,9 +33,9 @@ namespace MottuWebApplication.Controllers
         [HttpGet("{idCliente}", Name = "GetCliente")]
         public async Task<ActionResult<Cliente>> Get(int idCliente)
         {
-            var cliente = await _service.GetByIdAsync(idCliente);
+            var cliente = await _service.GetClienteByIdAsync(idCliente);
             if (cliente == null) return NotFound(); // 404 Not Found se não existir
-            return Ok(cliente); // 200 OK com o recurso
+            return Ok(cliente); // 200 OK com o cliente solicitado
         }
 
         /// <summary>
@@ -45,8 +45,8 @@ namespace MottuWebApplication.Controllers
         [HttpPost]
         public async Task<ActionResult> Post(Cliente cliente)
         {
-            var created = await _service.CreateAsync(cliente);
-            return CreatedAtRoute("GetCliente", new { idCliente = created.IdCliente }, created); // 201 Created com header 'Location' para o novo recurso
+            await _service.CreateClienteAsync(cliente);
+            return CreatedAtRoute("GetCliente", new { idCliente = cliente.IdCliente }, cliente); // 201 Created com Location e corpo do cliente criado
         }
 
         /// <summary>
@@ -55,22 +55,12 @@ namespace MottuWebApplication.Controllers
         /// <param name="idCliente">Id do cliente.</param>
         /// <param name="cliente">Dados do cliente.</param>
         [HttpPut("{idCliente}")]
-        public async Task<ActionResult> Put(int idCliente, Cliente cliente)
+        public async Task<ActionResult> Put(int idCliente, Cliente clienteIn)
         {
-            if (idCliente != cliente.IdCliente) return BadRequest(); // 400 Bad Request quando ID da rota não bate com o do corpo
-
-            var existente = await _service.GetByIdAsync(idCliente);
-            if (existente == null) return NotFound(); // 404 Not Found se não existir para atualizar
-
-            try
-            {
-                await _service.UpdateAsync(cliente);
-                return NoContent(); // 204 No Content
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, "Ocorreu um erro ao atualizar o cliente."); // 500 (concorrência/falha)
-            }
+            if (idCliente != clienteIn.IdCliente) return BadRequest(); // 400 Bad Request (ID divergente)
+            var ok = await _service.UpdateClienteAsync(idCliente, clienteIn);
+            if (!ok) return NotFound(); // 404 Not Found quando não há registro para atualizar
+            return NoContent(); // 204 No Content
         }
 
         /// <summary>
@@ -80,12 +70,12 @@ namespace MottuWebApplication.Controllers
         [HttpDelete("{idCliente}")]
         public async Task<ActionResult> Delete(int idCliente)
         {
-            var existente = await _service.GetByIdAsync(idCliente);
+            var existente = await _service.GetClienteByIdAsync(idCliente);
             if (existente == null) return NotFound(); // 404 Not Found se não existir para exclusão
 
-            var ok = await _service.DeleteAsync(idCliente);
-            if (!ok) return StatusCode(500, "Ocorreu um erro ao remover o cliente."); // 500 em falha de exclusão
-            return NoContent(); // 204 No Content
+            var ok = await _service.DeleteClienteAsync(idCliente);
+            if (!ok) return StatusCode(500, "Ocorreu um erro ao remover o cliente."); // 500 Internal Server Error em falha de exclusão
+            return NoContent(); // 204 No Content em exclusão bem-sucedida
         }
 
         /// <summary>
@@ -96,7 +86,7 @@ namespace MottuWebApplication.Controllers
         public async Task<ActionResult<IEnumerable<Cliente>>> GetByNome(string nome)
         {
             var clientes = await _service.GetByNomeAsync(nome);
-            return Ok(clientes);
+            return Ok(clientes); // 200 OK com a lista filtrada por nome
         }
 
         /// <summary>
@@ -108,7 +98,7 @@ namespace MottuWebApplication.Controllers
         public async Task<ActionResult<IEnumerable<Cliente>>> GetByCpf(string cpf)
         {
             var clientes = await _service.GetByCpfAsync(cpf);
-            return Ok(clientes);
+            return Ok(clientes); // 200 OK com a lista filtrada por CPF
         }
 
         /// <summary>
@@ -119,7 +109,7 @@ namespace MottuWebApplication.Controllers
         public async Task<ActionResult<IEnumerable<Cliente>>> GetByEmail(string email)
         {
             var clientes = await _service.GetByEmailAsync(email);
-            return Ok(clientes);
+            return Ok(clientes); // 200 OK com a lista filtrada por e-mail
         }
     }
 }

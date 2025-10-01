@@ -4,10 +4,10 @@ namespace MottuWebApplication.Application.Interfaces
 {
     public interface IPaisService
     {
-        Task<IReadOnlyList<Pais>> GetAllAsync();
-        Task<Pais?> GetByIdAsync(int id);
-        Task<Pais> CreateAsync(Pais entity);
-        Task UpdateAsync(Pais entity);
-        Task<bool> DeleteAsync(int id);
+        Task<IEnumerable<Pais>> GetAllPaisesAsync();
+        Task<Pais?> GetPaisByIdAsync(int id);
+        Task CreatePaisAsync(Pais newPais);
+        Task<bool> UpdatePaisAsync(int id, Pais updatedPais);
+        Task<bool> DeletePaisAsync(int id);
     }
 }

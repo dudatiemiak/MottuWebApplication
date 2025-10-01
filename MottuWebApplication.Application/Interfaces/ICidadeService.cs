@@ -4,10 +4,10 @@ namespace MottuWebApplication.Application.Interfaces
 {
     public interface ICidadeService
     {
-        Task<IReadOnlyList<Cidade>> GetAllAsync();
-        Task<Cidade?> GetByIdAsync(int id);
-        Task<Cidade> CreateAsync(Cidade entity);
-        Task UpdateAsync(Cidade entity);
-        Task<bool> DeleteAsync(int id);
+        Task<IEnumerable<Cidade>> GetAllCidadesAsync();
+        Task<Cidade?> GetCidadeByIdAsync(int id);
+        Task CreateCidadeAsync(Cidade newCidade);
+        Task<bool> UpdateCidadeAsync(int id, Cidade updatedCidade);
+        Task<bool> DeleteCidadeAsync(int id);
     }
 }

@@ -1,13 +1,13 @@
 using MottuWebApplication.MottuWebApplication.Domain.Entities;
 
-namespace MottuWebApplication.Application.Interfaces.Repositories
+namespace MottuWebApplication.Application.Interfaces
 {
     public interface IPaisRepository
     {
-        Task<IReadOnlyList<Pais>> GetAllAsync();
+        Task<IEnumerable<Pais>> GetAllAsync();
         Task<Pais?> GetByIdAsync(int id);
-        Task<Pais> CreateAsync(Pais entity);
-        Task UpdateAsync(Pais entity);
+        Task CreateAsync(Pais pais);
+        Task<bool> UpdateAsync(int id, Pais paisIn);
         Task<bool> DeleteAsync(int id);
     }
 }

@@ -19,7 +19,7 @@ namespace MottuWebApplication.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Filial>>> Get()
         {
-            return Ok(await _service.GetAllAsync());
+            return Ok(await _service.GetAllFiliaisAsync()); // 200 OK com a lista de filiais
         }
 
         /// <summary>
@@ -29,7 +29,7 @@ namespace MottuWebApplication.Controllers
         [HttpGet("{idFilial}", Name = "GetFilial")]
         public async Task<ActionResult<Filial>> Get(int idFilial)
         {
-            var filial = await _service.GetByIdAsync(idFilial);
+            var filial = await _service.GetFilialByIdAsync(idFilial);
 
             if (filial == null)
                 return NotFound(); // 404 Not Found quando não encontrado
@@ -44,8 +44,8 @@ namespace MottuWebApplication.Controllers
         [HttpPost]
         public async Task<ActionResult> Post(Filial filial)
         {
-            var created = await _service.CreateAsync(filial);
-            return CreatedAtRoute("GetFilial", new { idFilial = created.IdFilial }, created); // 201 Created com header 'Location'
+            await _service.CreateFilialAsync(filial);
+            return CreatedAtRoute("GetFilial", new { idFilial = filial.IdFilial }, filial); // 201 Created com Location e corpo da filial criada
         }
 
         /// <summary>
@@ -54,21 +54,13 @@ namespace MottuWebApplication.Controllers
         /// <param name="idFilial">Id da filial.</param>
         /// <param name="filial">Dados da filial.</param>
         [HttpPut("{idFilial}")]
-        public async Task<ActionResult> Put(int idFilial, Filial filial)
+        public async Task<ActionResult> Put(int idFilial, Filial filialIn)
         {
-            if (idFilial != filial.IdFilial)
-                return BadRequest(new { StatusCode = 400, Message = "ID da rota não bate com o objeto enviado." }); // 400 Bad Request id mismatch
-            var existente = await _service.GetByIdAsync(idFilial);
-            if (existente == null) return NotFound(); // 404 Not Found se não existir
-            try
-            {
-                await _service.UpdateAsync(filial);
-                return NoContent(); // Retorna 204 No Content
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, "Ocorreu um erro ao atualizar a filial."); // 500 Internal Server Error (concorrência/falha)
-            }
+            if (idFilial != filialIn.IdFilial)
+                return BadRequest(new { StatusCode = 400, Message = "ID da rota não bate com o objeto enviado." }); // 400 Bad Request (ID divergente)
+            var ok = await _service.UpdateFilialAsync(idFilial, filialIn);
+            if (!ok) return NotFound(); // 404 Not Found se não existir para atualizar
+            return NoContent(); // 204 No Content
         }
 
     /// <summary>
@@ -78,10 +70,10 @@ namespace MottuWebApplication.Controllers
         [HttpDelete("{idFilial}")]
         public async Task<ActionResult> Delete(int idFilial)
         {
-            var existente = await _service.GetByIdAsync(idFilial);
-            if (existente == null) return NotFound();
-            var ok = await _service.DeleteAsync(idFilial);
-            if (!ok) return StatusCode(500, "Ocorreu um erro ao remover a filial."); // 500 em falha de exclusão
+            var existente = await _service.GetFilialByIdAsync(idFilial);
+            if (existente == null) return NotFound(); // 404 Not Found quando não há registro para excluir
+            var ok = await _service.DeleteFilialAsync(idFilial);
+            if (!ok) return StatusCode(500, "Ocorreu um erro ao remover a filial."); // 500 Internal Server Error em falha de exclusão
 
             return NoContent(); // 204 No Content
         }
@@ -94,7 +86,7 @@ namespace MottuWebApplication.Controllers
         {
             // optional custom filter preserved via service
             var filiais = await _service.GetByNomeAsync(nome);
-            return Ok(filiais);
+            return Ok(filiais); // 200 OK com a lista filtrada por nome
         }
     }    
 }

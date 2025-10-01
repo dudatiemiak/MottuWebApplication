@@ -1,7 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using MottuWebApplication.Application.Services;
 using MottuWebApplication.Application.Interfaces;
-using MottuWebApplication.Application.Interfaces.Repositories;
 using MottuWebApplication.Infrastructure.Repositories;
 
 namespace MottuWebApplication.Infrastructure

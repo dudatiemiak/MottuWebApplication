@@ -4,10 +4,10 @@ namespace MottuWebApplication.Application.Interfaces
 {
     public interface IEstadoService
     {
-        Task<IReadOnlyList<Estado>> GetAllAsync();
-        Task<Estado?> GetByIdAsync(int id);
-        Task<Estado> CreateAsync(Estado entity);
-        Task UpdateAsync(Estado entity);
-        Task<bool> DeleteAsync(int id);
+        Task<IEnumerable<Estado>> GetAllEstadosAsync();
+        Task<Estado?> GetEstadoByIdAsync(int id);
+        Task CreateEstadoAsync(Estado newEstado);
+        Task<bool> UpdateEstadoAsync(int id, Estado updatedEstado);
+        Task<bool> DeleteEstadoAsync(int id);
     }
 }

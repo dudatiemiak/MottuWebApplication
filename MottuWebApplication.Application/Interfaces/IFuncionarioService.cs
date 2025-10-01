@@ -4,14 +4,14 @@ namespace MottuWebApplication.Application.Interfaces
 {
     public interface IFuncionarioService
     {
-        Task<IReadOnlyList<Funcionario>> GetAllAsync();
-        Task<Funcionario?> GetByIdAsync(int id);
-        Task<Funcionario> CreateAsync(Funcionario entity);
-        Task UpdateAsync(Funcionario entity);
-        Task<bool> DeleteAsync(int id);
+        Task<IEnumerable<Funcionario>> GetAllFuncionariosAsync();
+        Task<Funcionario?> GetFuncionarioByIdAsync(int id);
+        Task CreateFuncionarioAsync(Funcionario newFuncionario);
+        Task<bool> UpdateFuncionarioAsync(int id, Funcionario updatedFuncionario);
+        Task<bool> DeleteFuncionarioAsync(int id);
 
-        Task<IReadOnlyList<Funcionario>> GetByNomeAsync(string nome);
-        Task<IReadOnlyList<Funcionario>> GetByCargoAsync(string cargo);
-        Task<IReadOnlyList<Funcionario>> GetByEmailAsync(string email);
+        Task<IEnumerable<Funcionario>> GetByNomeAsync(string nome);
+        Task<IEnumerable<Funcionario>> GetByCargoAsync(string cargo);
+        Task<IEnumerable<Funcionario>> GetByEmailAsync(string email);
     }
 }

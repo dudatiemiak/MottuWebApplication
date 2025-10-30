@@ -2,9 +2,11 @@
 using Microsoft.EntityFrameworkCore;
 using MottuWebApplication.MottuWebApplication.Domain.Entities;
 using MottuWebApplication.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MottuWebApplication.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class MotoController : ControllerBase

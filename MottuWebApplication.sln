@@ -11,6 +11,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MottuWebApplication.Domain"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MottuWebApplication.Infrastructure", "MottuWebApplication.Infrastructure\MottuWebApplication.Infrastructure.csproj", "{EFEFBD65-C99E-4D06-83B5-755BD7666A68}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MottuWebApplication.Trainer", "MottuWebApplication.Trainer\MottuWebApplication.Trainer.csproj", "{7F84229C-B3BD-4C82-966A-6E0C5AE3FB70}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MottuWebApplication.Tests", "MottuWebApplication.Tests\MottuWebApplication.Tests.csproj", "{BC667AC0-BC6A-4C4A-BE65-33F145426C0A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +37,14 @@ Global
 		{EFEFBD65-C99E-4D06-83B5-755BD7666A68}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EFEFBD65-C99E-4D06-83B5-755BD7666A68}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EFEFBD65-C99E-4D06-83B5-755BD7666A68}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7F84229C-B3BD-4C82-966A-6E0C5AE3FB70}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F84229C-B3BD-4C82-966A-6E0C5AE3FB70}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F84229C-B3BD-4C82-966A-6E0C5AE3FB70}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F84229C-B3BD-4C82-966A-6E0C5AE3FB70}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC667AC0-BC6A-4C4A-BE65-33F145426C0A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC667AC0-BC6A-4C4A-BE65-33F145426C0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC667AC0-BC6A-4C4A-BE65-33F145426C0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC667AC0-BC6A-4C4A-BE65-33F145426C0A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using MottuWebApplication.Domain.Entities;
 using MottuWebApplication.MottuWebApplication.Domain.Entities;
 namespace MottuWebApplication.Infrastructure.Data;
 
@@ -22,6 +23,7 @@ public class AppDbContext : DbContext
     public DbSet<Modelo> Modelos { get; set; }
     public DbSet<Moto> Motos { get; set; }
     public DbSet<Manutencao> Manutencoes { get; set; }
+    public DbSet<Review> Reviews { get; set; }
 
-   
+
 }

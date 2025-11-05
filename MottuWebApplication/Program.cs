@@ -9,6 +9,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using MottuWebApplication.Application.Services;
+using Microsoft.Extensions.ML;
+using MottuWebApplication.Domain.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -58,6 +60,10 @@ builder.Services.AddInfrastructure();
 builder.Services.AddApplication();
 
 builder.Services.AddSingleton<TokenService>();
+var modelPath = Path.Combine(AppContext.BaseDirectory, "model-manutencao.zip");
+builder.Services.AddPredictionEnginePool<ModelInput, ModelOutput>().FromFile(modelName: "DefaultModelName", filePath: modelPath);
+// Register the prediction service which wraps the PredictionEnginePool
+builder.Services.AddSingleton<IPredictionService, PredictionService>();
 
 // Configuração da autenticação JWT
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

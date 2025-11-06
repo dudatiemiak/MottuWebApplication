@@ -2,6 +2,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace MottuWebApplication.Controllers
 {
+    /// <summary>
+    /// Controller de exemplo / teste que fornece previsões do tempo.
+    /// Mantida para demonstrar endpoints simples e testes automatizados.
+    /// </summary>
     [ApiController]
     [Route("[controller]")]
     public class WeatherForecastController : ControllerBase
@@ -18,6 +22,10 @@ namespace MottuWebApplication.Controllers
             _logger = logger;
         }
 
+        /// <summary>
+        /// Retorna uma lista de previsões do tempo de exemplo.
+        /// </summary>
+        /// <returns>Array com 5 objetos <see cref="WeatherForecast"/>.</returns>
         [HttpGet(Name = "GetWeatherForecast")]
         public IEnumerable<WeatherForecast> Get()
         {

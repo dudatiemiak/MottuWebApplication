@@ -2,6 +2,7 @@ using Oracle.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using MottuWebApplication.Infrastructure;
 using System.Reflection;
+using System.IO;
 using MottuWebApplication.Infrastructure.Data;
 using MottuWebApplication.Application;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -55,14 +56,12 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseOracle(builder.Configuration.GetConnectionString("OracleConnection")));
 
-// Infrastructure DI (repositories/services)
 builder.Services.AddInfrastructure();
 builder.Services.AddApplication();
 
 builder.Services.AddSingleton<TokenService>();
-var modelPath = Path.Combine(AppContext.BaseDirectory, "model-manutencao.zip");
+var modelPath = Path.Combine(builder.Environment.ContentRootPath, "model-manutencao.zip");
 builder.Services.AddPredictionEnginePool<ModelInput, ModelOutput>().FromFile(modelName: "DefaultModelName", filePath: modelPath);
-// Register the prediction service which wraps the PredictionEnginePool
 builder.Services.AddSingleton<IPredictionService, PredictionService>();
 
 // Configuração da autenticação JWT

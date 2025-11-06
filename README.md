@@ -1,4 +1,3 @@
-dotnet run --project .\MottuWebApplication\MottuWebApplication.csproj --launch-profile http
 # 🏍️ Mottu Web API — ASP.NET Core + Oracle
 
 **Challenge 2025 — FIAP**
@@ -70,6 +69,17 @@ Configurar connection string em `MottuWebApplication/appsettings.json`:
 }
 ```
 
+Migrations (aplicar o esquema do banco):
+
+Se você estiver usando o banco de dados real (Oracle), aplique as migrations para criar as tabelas necessárias (incluindo `Reviews`). Um comando útil (CLI) é:
+
+```powershell
+dotnet ef database update --project .\MottuWebApplication.Infrastructure --startup-project .\MottuWebApplication
+```
+
+Ou use `Update-Database` no Package Manager Console apontando os projetos de startup e migrations conforme seu ambiente.
+
+
 Executar (PowerShell):
 
 ```powershell
@@ -77,7 +87,27 @@ dotnet build .\MottuWebApplication.sln -c Debug
 dotnet run --project .\MottuWebApplication\MottuWebApplication.csproj --launch-profile http
 ```
 
-Abra o Swagger em: http://localhost:5233/swagger
+Observação sobre a URL/porta do Swagger:
+
+O perfil de execução (`launchSettings.json`) pode definir portas diferentes na sua máquina. Caso a URL/porta exibida no README não corresponda ao que aparece no console após `dotnet run`, confira `MottuWebApplication/Properties/launchSettings.json` ou abra a URL indicada no console de execução. Ex.: http://localhost:5233/swagger (pode variar).
+
+Abra o Swagger em: http://localhost:5233/swagger (ou na URL mostrada pelo console após iniciar a API)
+
+---
+
+Treinar e gerar o modelo (opcional, local)
+
+Se você quiser re-treinar o modelo localmente e gerar o artefato `model-manutencao.zip`, execute o projeto Trainer e copie o ZIP para onde a API o espera. Exemplo (PowerShell):
+
+```powershell
+dotnet build .\MottuWebApplication.Trainer -c Release
+dotnet run --project .\MottuWebApplication.Trainer -c Release
+# O ZIP será gerado em
+# .\MottuWebApplication.Trainer\bin\Release\net9.0\model-manutencao.zip
+```
+
+Após gerar, copie o arquivo para a raiz do projeto web (`MottuWebApplication/`) ou configure o `csproj` para que seja incluído no publish (veja seção "Deploy do modelo").
+
 
 ---
 
@@ -173,6 +203,10 @@ Observação: a maior parte dos testes é unitária e usa mocks. Se algum teste 
 
 Instruções rápidas para garantir que `model-manutencao.zip` esteja disponível no publish/pasta do app:
 
+Nota sobre onde o app procura o modelo em runtime:
+
+O runtime da API resolve o caminho do modelo usando `builder.Environment.ContentRootPath` e procura por `model-manutencao.zip` no diretório de conteúdo (ou seja, no diretório da aplicação publicada). Para evitar erros em tempo de execução, coloque `model-manutencao.zip` na raiz do projeto web (`MottuWebApplication/`) antes de publicar, ou configure o `csproj` para copiá-lo ao output/publish (ex.: `CopyToOutputDirectory`).
+
 - Opção A — copiar o ZIP durante a pipeline (ex.: GitHub Actions)
 
 	- Bash (Linux/macOS runner):
@@ -208,6 +242,25 @@ Adicione ao `MottuWebApplication.csproj`:
 
 Isso garante que `dotnet publish` inclua o arquivo no diretório de publicação.
 
+Checklist curta: regenerar o modelo e publicar
+
+1. Re-treinar / gerar o ZIP (no projeto Trainer):
+
+```powershell
+dotnet build .\MottuWebApplication.Trainer -c Release
+dotnet run --project .\MottuWebApplication.Trainer -c Release
+```
+
+2. Copiar `model-manutencao.zip` para o projeto Web (ou configure csproj):
+
+```powershell
+Copy-Item -Path .\MottuWebApplication.Trainer\bin\Release\net9.0\model-manutencao.zip -Destination .\MottuWebApplication\ -Force
+```
+
+3. (Opcional) Marcar o ZIP como Content no `MottuWebApplication.csproj` para publicação automática (veja seção acima `CopyToOutputDirectory`).
+
+4. Publicar/buildar a API para o ambiente alvo (ela agora encontrará o ZIP em `ContentRootPath`).
+
 ---
 
 ## Estrutura do repositório
@@ -220,11 +273,6 @@ Isso garante que `dotnet publish` inclua o arquivo no diretório de publicação
 - `MottuWebApplication.Tests` — testes automatizados
 
 ---
-
-Se quiser, eu posso:
-
-- executar `dotnet build` + `dotnet test` e colar a saída aqui;
-- adicionar um exemplo de workflow GitHub Actions que construa o Trainer, copie o modelo e publique a API.
 
 ---
 

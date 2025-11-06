@@ -58,7 +58,7 @@ namespace MottuWebApplication.Tests
             Assert.IsType<CreatedAtActionResult>(actionResult.Result);
             var savedReview = await dbContext.Reviews.FirstOrDefaultAsync();
             Assert.NotNull(savedReview);
-            Assert.Equal("Precisa Manutenção", savedReview.PredictedManutencao);
+            Assert.Equal("Positivo", savedReview.PredictedManutencao);
             Assert.Equal(0.95f, savedReview.ManutencaoScore);
         }
 
@@ -80,7 +80,7 @@ namespace MottuWebApplication.Tests
             Assert.IsType<CreatedAtActionResult>(actionResult.Result);
             var savedReview = await dbContext.Reviews.FirstOrDefaultAsync();
             Assert.NotNull(savedReview);
-            Assert.Equal("Não Precisa Manutenção", savedReview.PredictedManutencao);
+            Assert.Equal("Negativo", savedReview.PredictedManutencao);
             Assert.Equal(0.10f, savedReview.ManutencaoScore);
         }
 

@@ -2,7 +2,7 @@
 
 **Challenge 2025 — FIAP**
 
-API REST para gerenciamento de clientes, motos e outras entidades, com integração de um modelo ML.NET para predição de necessidade de manutenção (endpoint `Reviews`).
+API REST para gerenciamento de clientes, motos e outras entidades, com integração de um modelo ML.NET para predição de necessidade de manutenção - para solucionar o problema de gestão de motos da Mottu.
 
 ---
 
